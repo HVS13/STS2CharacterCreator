@@ -2,11 +2,11 @@
 
 Audit date: **2026-08-24**
 
-Status: **Stage 0D.1.1 investigation complete. No runtime launch was performed.**
+Status: **Stage 0D.1.2 clean retry complete. Stage 0D.2 was not started.**
 
 This document records the safest reproducible way found to prepare a future smoke
 test with only official BaseLib v3.4.5 and the patched BLANK compatibility build
-enabled. It does not authorize that future launch.
+enabled. The procedure was executed once under separate Stage 0D.1.2 authorization and rolled back.
 
 ## Current inventory
 
@@ -68,18 +68,20 @@ container, represented locally under the STS2 roaming-data directory. It is a
 settings container, not a run save, but it contains mod enablement state alongside
 normal game settings.
 
-Read-only inspection found:
+Read-only pre-run inspection found:
 
-- `settings.save`: 8,997 bytes
-- existing `settings.save.backup`: 8,997 bytes
-- the two current files have the same SHA-256 hash
-- the current settings data contains `BaseLib` text and no `BlankTheSpire` text
+- `settings.save`: 9,450 bytes, SHA-256 `2C79C018F26BCDF2A5A32018F1698CC7B872204CDDBCBF90A5B48938C9ECA12E`
+- existing `settings.save.backup`: 8,997 bytes, SHA-256 `295448A054A30CB2D6F56AEC02EA54760799B16908A2AD713E325A0D4A2DC8EE`
+- the two pre-run files were already different
+- the pre-run settings data contained `BaseLib` and no `BlankTheSpire` entry
 
-The identical backup is existing game state. It was not created or changed during
-this task. The prior Stage 0D.1 log recorded cloud synchronization, deletion of a
-stale settings file, and writes to `settings.save`. Therefore a settings backup is
-mechanically possible, but restoring it is a state mutation and cloud sync can
-reintroduce a different copy.
+The Stage 0D.1.2 no-op proof used the game’s own `JsonSerializationUtility` on a
+copy and returned an exact byte-for-byte hash match. The isolation preview changed
+only `SettingsSave.ModSettings.ModList`: all 53 unrelated entries were disabled,
+the local BaseLib source was selected, and a local BlankTheSpire entry was added.
+The game rotated both settings files during startup, so both exact pre-run copies
+were restored after shutdown. Remote Steam Cloud state is not directly observable
+from local process inspection.
 
 ## Candidate isolation methods
 
@@ -115,13 +117,43 @@ isolation run:
    another separately approved isolation mechanism instead.
 
 This procedure is the best available game-supported method, not a proven
-no-write method. The current task intentionally did not perform any of these
-state-changing steps.
+no-write method. Stage 0D.1.1 intentionally did not perform any of these
+state-changing steps; Stage 0D.1.2 later executed the procedure and rolled it back.
 
 ## Safety boundary
 
-- STS2 was not launched during Stage 0D.1.1.
+- STS2 was not launched during Stage 0D.1.1; the separately authorized Stage 0D.1.2 retry was launched normally through Steam.
 - No live local mod, Workshop directory, Steam setting, save, or settings file was
   changed during Stage 0D.1.1.
-- No `settings.save` backup or restore was performed during Stage 0D.1.1.
+- The Stage 0D.1.2 settings backup and restore hashes match exactly.
 - Stage 0D.2 was not started.
+
+## Stage 0D.1.2 result
+
+The isolation procedure was executed on 2026-08-24 and rolled back after the game
+reached the main menu. The live settings edit was made from a game-serializer
+preview, not by hand-editing JSON. Only local BaseLib v3.4.5 and patched BLANK were
+enabled. The pre-existing local `UnifiedSavePath` directory remained installed but
+was disabled. All 53 Workshop entries were retained and disabled. The final log
+reported `Loaded 2 mods (56 total)`, BaseLib initialization, BLANK initialization,
+and `Time to main menu: 21,356ms`.
+
+The final-run log contained no `WaitHelper` failure and no
+`DuplicateModelException`. It did contain the non-fatal old-style dependency
+message because BLANK’s manifest dependency does not specify a minimum version,
+and a warning that BLANK has no minimum game version.
+
+After normal shutdown:
+
+- both `settings.save` and `settings.save.backup` matched their exact pre-run hashes;
+- the local mod inventory matched the pre-run inventory exactly;
+- the Workshop directory inventory matched all 53 pre-run IDs;
+- no unsubscribe or Workshop directory mutation command was issued;
+- the six BLANK-generated emoji PNG files, six resource files, and empty
+  `forged\characters` directory were removed; the pre-existing `forged\cards`
+  directory was not changed;
+- no character, card, run, or gameplay save was created or intentionally edited.
+
+The game did log a cloud-save overwrite and settings rotation. That local evidence
+means remote Steam Cloud state cannot be called unchanged with certainty. This is a
+remaining risk, not a failure of the local rollback.

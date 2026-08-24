@@ -35,12 +35,14 @@ CARD.TYPHOON duplicate-model startup error in the existing workshop-heavy mod
 set. The temporary BaseLib and BlankTheSpire directories were removed and the
 final local-mod inventory matched the baseline.
 
-Stage 0D.1 is blocked, not complete. The log also records automatic
+The original non-isolated Stage 0D.1 attempt remains blocked as a historical result. The log also records automatic
 settings.save synchronization and writes, so the strict no-save-change
 criterion is not proven. The full evidence is in
 docs/research/BLANK_RUNTIME_SMOKE.md. Stage 0D.2 was not started.
 
-Phase 0, Stage 0D.1.1, non-launching WaitHelper diagnosis and compatibility rebuild, is complete as a bounded follow-up. The compatibility worktree commit 7e5996fb2a16723684cb095951e97ba01e73fc69 selects the current string overload deterministically and rebuilds with 0 errors and 330 warnings. The local assembly audit found that `nomods` disables all mods, while source-aware `ModSettings` enablement is applied before mod loading. A clean Stage 0D.1 retry remains pending the isolation procedure in docs/research/STS2_MOD_ISOLATION.md.
+Phase 0, Stage 0D.1.1, non-launching WaitHelper diagnosis and compatibility rebuild, is complete as a bounded follow-up. The compatibility worktree commit 7e5996fb2a16723684cb095951e97ba01e73fc69 selects the current string overload deterministically and rebuilds with 0 errors and 330 warnings. The local assembly audit found that `nomods` disables all mods, while source-aware `ModSettings` enablement is applied before mod loading. The clean Stage 0D.1.2 retry completed using the isolation procedure in docs/research/STS2_MOD_ISOLATION.md.
+
+Phase 0, Stage 0D.1.2, clean isolated BLANK runtime smoke-test retry, is complete as a bounded runtime proof. The game’s own settings serializer round-tripped a copy byte-for-byte, and a semantic diff proved that the temporary live edit changed only SettingsSave.ModSettings.ModList. A normal Steam launch loaded exactly local BaseLib v3.4.5 and patched BLANK, reached the main menu, and reported no WaitHelper or DuplicateModelException failure. STS2 did rotate the settings files and logged a cloud-save overwrite during startup, but both settings files, local mods, Workshop directory inventory, and BLANK-generated runtime artifacts were restored or verified after shutdown. Stage 0D.2 was not started.
 
 No production application code has been started. No application framework has been initialized.
 
@@ -115,6 +117,7 @@ are recorded in docs/research/BLANK_BUILD.md.
 - Stage 0C.2 documentation commit: 0a70d9204b34af8f18da33a9425fc144ddabdbb1
 - BLANK compatibility commit: 8ff307d3eae4afbe111d91784b1bcff4f4dfe2af
 - Stage 0D.1 documentation commit: 7fcbf0707559d40ecc3f6dd6acd5abfae92eaadc
+- Stage 0D.1.1 documentation checkpoint: 9d6f13c3c17fd581a50c3594997db19fc254ca4f
 - BLANK WaitHelper compatibility fix commit: 7e5996fb2a16723684cb095951e97ba01e73fc69
 - BLANK checkout: research/upstream/BLANKthespire
 - BLANK commit: d29b6c8aeacae7f68685e3e9c3f5d65fa88bdb80
@@ -131,7 +134,7 @@ was audited without modifying game content. The installed .NET SDK is now
 
 ## Immediate work
 
-Stage 0D.1 remains blocked after the controlled smoke test. Do not start Stage 0D.2. The WaitHelper overload failure is diagnosed and fixed in the isolated compatibility worktree. A future runtime retry still needs the documented mod-isolation procedure, explicit settings backup and restore, and separate authorization.
+Stage 0D.1.2 is complete after the clean isolated retry. Do not start Stage 0D.2 in this task. The retry proved local BaseLib and patched BLANK reach the main menu with the known WaitHelper and duplicate-model failures absent. Exact local rollback passed, but remote Steam Cloud and subscription state remain outside direct local verification.
 
 ## Known decisions
 
@@ -156,5 +159,5 @@ Stage 0D.1 remains blocked after the controlled smoke test. Do not start Stage 0
 - whether the fixed-shell limits are sufficient for the intended MVP
 - whether the compatibility target remains valid after future STS2 API changes
 - whether the existing workshop CARD.TYPHOON conflict can be separated from BLANK runtime proof
-- whether a safe smoke-test procedure can avoid automatic settings.save writes and workshop updates
+- whether remote Steam Cloud state and subscription state can be independently verified from local inspection
 - whether a compatible BLANK commit is preferable to maintaining the committed local experiment

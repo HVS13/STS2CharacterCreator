@@ -4,7 +4,7 @@ Audit date: 2026-08-24
 
 Test window: approximately 18:19-18:21 Asia/Jakarta, based on the STS2 log timestamps and final log write time.
 
-Status: **Stage 0D.1 blocked**
+Status: **Stage 0D.1.2 complete. The earlier non-isolated Stage 0D.1 result remains historical and blocked. Stage 0D.2 was not started.**
 
 This report covers only the reproducible compatibility checkpoint and controlled
 runtime smoke test. Stage 0D.2 was not started.
@@ -279,3 +279,112 @@ The original Stage 0D.1 result remains blocked because the prior launch was not
 isolated from the existing Workshop-heavy mod set and recorded automatic
 `settings.save` activity. A future clean Stage 0D.1 retry requires separate
 authorization and the documented isolation protocol.
+
+## Stage 0D.1.2 clean isolated retry
+
+Audit date: **2026-08-24**
+
+This section records the separately authorized clean retry after the Stage 0D.1.1 diagnosis. It does not start Stage 0D.2. No character, card, run, combat, settings menu, or gameplay interaction was performed.
+
+### Checkpoint and build
+
+- Stage 0D.1.1 documentation checkpoint: `9d6f13c3c17fd581a50c3594997db19fc254ca4f`.
+- Compatibility worktree commit used: `7e5996fb2a16723684cb095951e97ba01e73fc69`.
+- Compatibility worktree was clean before staging.
+- Rebuild result: exit code 0, 330 warnings, 0 errors.
+- The current staged `BlankTheSpire.dll` hash was `D59B1472F217FD283E87C106F82EA14499D63598FC55465452A9ABA2DA3A118A`. The JSON and PCK hashes remained `FCB94D79DA8477E48D478134C4EFACBD0478DB7070FBE383E4F0A576A80EA25F` and `C8F9F834D4AAB213023DBB19EC19EB8F95D3DECA6676B51ABB4B40CCA3D99351`.
+- Official BaseLib v3.4.5 files were staged and hash-verified before installation. No package manager or installer was used for the runtime test.
+
+### Settings proof and isolation
+
+The pre-run live settings hashes were:
+
+- `settings.save`: 9,450 bytes, `2C79C018F26BCDF2A5A32018F1698CC7B872204CDDBCBF90A5B48938C9ECA12E`.
+- `settings.save.backup`: 8,997 bytes, `295448A054A30CB2D6F56AEC02EA54760799B16908A2AD713E325A0D4A2DC8EE`.
+
+The game’s own `MegaCrit.Sts2.Core.Saves.JsonSerializationUtility` was invoked by a temporary ignored probe. Parsing and serializing a copy returned `Success=True`, `Status=Success`, 9,450 output bytes, and the exact original `settings.save` hash. This no-op proof completed before the live settings file was touched.
+
+A second game-serializer probe changed only `SettingsSave.ModSettings.ModList` on a copy. The semantic comparison outside `mod_settings.mod_list` returned true. The preview retained all 54 existing entries, disabled the 53 unrelated entries, changed the existing BaseLib source to `mods_directory`, and appended one local `BlankTheSpire` entry. Exactly these two entries were enabled:
+
+```text
+BaseLib:mods_directory
+BlankTheSpire:mods_directory
+```
+
+The physical local mods directory temporarily contained the pre-existing `UnifiedSavePath` plus the two staged test directories. `UnifiedSavePath` was disabled by the settings list and the log confirmed it was skipped. All 53 Workshop directories remained present and their directory inventory was unchanged.
+
+### Startup result
+
+STS2 was launched through the normal Steam URI with no custom game arguments:
+
+```powershell
+Start-Process -FilePath 'steam://rungameid/2868840'
+```
+
+The log recorded:
+
+- All unrelated local and Workshop entries were skipped as disabled.
+- The duplicate Workshop BaseLib was disabled in favor of the local BaseLib.
+- BaseLib v3.4.5 initialized and applied 280 patches successfully with 0 failed.
+- BLANK DLL and PCK were loaded, and `Finished mod initialization for 'BLANK the spire'` was recorded.
+- `RUNNING MODDED` reported `Loaded 2 mods (56 total)`.
+- The main menu was reached. `Time to main menu: 21,356ms`.
+- No `WaitHelper`, `AutoSlaySmokeHook`, `MissingMethodException`, or `DuplicateModelException` match was present in the final-run log.
+
+One non-fatal manifest compatibility error remained:
+
+```text
+Detected old-style dependencies without min version specified! It works for now but this will be removed in a future release.
+```
+
+The log also warned that BLANK does not declare a minimum game version. These are manifest warnings for the current build, not startup blockers. The previous Workshop-heavy `CARD.TYPHOON` duplicate-model error did not recur in this isolated run.
+
+### Rollback
+
+STS2 was closed through its normal window-close path and the process exited. The game had rotated the settings files during startup:
+
+- post-run `settings.save`: `02E3C809A1F3A9F18717AAA2AECD5C128A290F1A8FF21C6BE3030E326FF7F20F`.
+- post-run `settings.save.backup`: `3833361053DCC21E2D7DE013448CB3856CDB8DF921BC5A39D7C90CC2DF4B8339`.
+
+Both exact pre-run copies were restored after shutdown. A settling check confirmed:
+
+- `settings.save` restored to `2C79C018F26BCDF2A5A32018F1698CC7B872204CDDBCBF90A5B48938C9ECA12E`.
+- `settings.save.backup` restored to `295448A054A30CB2D6F56AEC02EA54760799B16908A2AD713E325A0D4A2DC8EE`.
+- `BaseLib` and `BlankTheSpire` local directories absent.
+- Local mod inventory exactly matched the pre-run `UnifiedSavePath` inventory.
+- Workshop directory count remained 53 and the full directory inventory matched the pre-run inventory.
+- No unsubscribe or Workshop directory mutation command was issued. Steam subscription state itself is not directly observable from local process inspection.
+- BLANK’s six emoji `.png` files, six `.res` files, and empty `forged\characters` directory created during initialization were removed. The pre-existing empty `forged\cards` directory was left untouched.
+- No run, character, card, or gameplay save was created or intentionally edited. The log did record a cloud-save overwrite and settings rotation, so remote Steam Cloud state cannot be independently proven from this local audit.
+
+### Commands used for this retry
+
+```powershell
+dotnet build .\BlankTheSpire.csproj --no-restore -t:Rebuild -p:Sts2Path="D:/SteamLibrary/steamapps/common/Slay the Spire 2" -p:ModsPath="C:/Codex/STS2CharacterCreator/research/build-output/blank-mods/"
+dotnet run --project .\research\build-output\settings-roundtrip\settings-roundtrip.csproj -- 'D:\SteamLibrary\steamapps\common\Slay the Spire 2\data_sts2_windows_x86_64\sts2.dll' '.\research\build-output\smoke-0d1-2\before\settings.save' '.\research\build-output\smoke-0d1-2\settings-roundtrip.save'
+dotnet run --project .\research\build-output\settings-isolation\settings-isolation.csproj -- 'D:\SteamLibrary\steamapps\common\Slay the Spire 2\data_sts2_windows_x86_64\sts2.dll' '.\research\build-output\smoke-0d1-2\before\settings.save' '.\research\build-output\smoke-0d1-2\isolation-preview.save'
+Start-Process -FilePath 'steam://rungameid/2868840'
+rg -n -C 2 "patches successfully|RUNNING MODDED|Finished mod initialization|Time to main menu|WaitHelper|DuplicateModelException|old-style dependencies" .\research\build-output\smoke-0d1-2\after\godot.log
+Remove-Item -LiteralPath 'D:\SteamLibrary\steamapps\common\Slay the Spire 2\mods\BaseLib','D:\SteamLibrary\steamapps\common\Slay the Spire 2\mods\BlankTheSpire' -Recurse -Force
+Get-FileHash -LiteralPath <account-scoped-settings.save-path> -Algorithm SHA256
+Get-FileHash -LiteralPath <account-scoped-settings.save-path>.backup -Algorithm SHA256
+```
+
+The guarded PowerShell steps also recorded the pre-run hashes, verified target directories were absent, copied only the six staged runtime files, restored both settings copies, and compared the local and Workshop inventories. Temporary probes and runtime output remain under ignored `research/build-output/` paths.
+
+### Result classification
+
+| Component | Result |
+| --- | --- |
+| Settings no-op round-trip on copy | Pass, exact byte hash match |
+| ModList-only isolation preview | Pass, non-ModList semantic equality |
+| BaseLib v3.4.5 runtime load | Pass, 280 patches, 0 failed |
+| BLANK runtime initialization | Pass |
+| Main-menu reachability | Pass |
+| Known WaitHelper failure | Not present |
+| Known DuplicateModelException | Not present |
+| Rollback and local inventory | Pass |
+| Workshop directory inventory | Pass, 53 of 53 unchanged |
+| Remote Steam Cloud/subscription state | Not independently verifiable locally |
+
+Stage 0D.1.2 is complete. Do not start Stage 0D.2 as part of this task.
