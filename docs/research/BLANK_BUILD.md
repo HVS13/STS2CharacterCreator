@@ -200,7 +200,30 @@ Result: exit code 0, 330 warnings, 0 errors. The sandbox output contains a DLL, 
 ## Remaining limitations after Stage 0C.2
 
 - runtime loading and in-game behavior remain untested because STS2 was not launched
-- live BaseLib remains uninstalled
+- at the Stage 0C.2 checkpoint, live BaseLib remained uninstalled
 - Godot remains uninstalled and unlaunched
-- the compatibility derivative remains an ignored, uncommitted experiment
-- Stage 0D was not started
+- at the Stage 0C.2 checkpoint, the compatibility derivative remained an ignored, uncommitted experiment
+- at the Stage 0C.2 checkpoint, Stage 0D had not started
+
+## Stage 0D.1 controlled runtime smoke test
+
+Status: **blocked**. The complete runtime evidence is in
+`docs/research/BLANK_RUNTIME_SMOKE.md`.
+
+The committed compatibility derivative was `8ff307d3eae4afbe111d91784b1bcff4f4dfe2af`, based on the pinned BLANK commit `d29b6c8aeacae7f68685e3e9c3f5d65fa88bdb80`. A forced rebuild exited 0 with 330 warnings and 0 errors. Only the resulting DLL, JSON manifest, and PCK were staged.
+
+Official BaseLib v3.4.5 release files were staged from the [official release](https://github.com/Alchyr/BaseLib-StS2/releases/tag/v3.4.5), tag commit `22757933ba10adc4322a628519a233a567507d87`. The staged SHA-256 values were:
+
+- `BaseLib.dll`: `AD2F89E43E8B31DEBFAB65D783353D9429EBA59A2CFE904FF933A894CE79D32E`
+- `BaseLib.json`: `6D64D1BA9E48ABF6E15479A6BDA6F2D2B75A277453361A96CBCDD5508ACCCBA3`
+- `BaseLib.pck`: `A405F900CCFF9FEBD5DD16733DC6D40E8E71BB1237F4578C5291271C97AB2DAA`
+
+The BLANK staged SHA-256 values were:
+
+- `BlankTheSpire.dll`: `34B9A469A3EF2A62654320A9855835291A37FBD9192B361ABDC1A049FBF916B3`
+- `BlankTheSpire.json`: `FCB94D79DA8477E48D478134C4EFACBD0478DB7070FBE383E4F0A576A80EA25F`
+- `BlankTheSpire.pck`: `C8F9F834D4AAB213023DBB19EC19EB8F95D3DECA6676B51ABB4B40CCA3D99351`
+
+The normal Steam launch reached `RUNNING MODDED`. BaseLib loaded and applied 280 patches with 0 failures. BLANK's DLL and PCK loaded, but its initializer failed with a Harmony `AmbiguousMatchException` for `WaitHelper.Until`. STS2 also reported an existing-workshop `CARD.TYPHOON` duplicate-model startup error. The two temporary local mod directories were removed after normal shutdown, and the final local-mod inventory matched the baseline.
+
+The log records automatic `settings.save` synchronization and writes. No intentional character, run, save, or game-content edit was performed, but this means the strict no-save-change criterion is not proven. Stage 0D.2 was not started.

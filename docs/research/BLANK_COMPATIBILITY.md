@@ -242,7 +242,7 @@ changes. The derivative is not ready to install or use as a maintained runtime.
 - compatibility changes: only in the separate ignored worktree
 - live mods: unchanged; `BlankTheSpire` was not present
 - live BaseLib: not installed
-- STS2: not launched
+- at the Stage 0C.2 checkpoint, STS2 was not launched
 - Godot: not installed or launched
 - save files and game content: not modified
 
@@ -340,7 +340,17 @@ This proves compilation and sandbox packaging. It does not prove runtime loading
 - original BLANK checkout: clean at d29b6c8aeacae7f68685e3e9c3f5d65fa88bdb80
 - BaseLib source checkout: clean at v3.4.5, commit 22757933ba10adc4322a628519a233a567507d87
 - ModAnalyzers source checkout: clean at commit 46c6a91ff24d47062d6b28cb734a8f855e1da0b6
-- live mods: unchanged; normalized before/after inventories matched and no BlankTheSpire directory was present
-- save files, game files, and unrelated mods: not modified
-- STS2: not launched
-- Stage 0D: not started
+- at the Stage 0C.2 checkpoint, live mods were unchanged; normalized before/after inventories matched and no BlankTheSpire directory was present
+- at the Stage 0C.2 checkpoint, save files, game files, and unrelated mods were not modified
+- at the Stage 0C.2 checkpoint, STS2 was not launched
+- at the Stage 0C.2 checkpoint, Stage 0D had not started
+
+## Stage 0D.1 controlled runtime result
+
+Stage 0D.1 did not produce a clean runtime compatibility proof. No compatibility source was changed during the smoke test. The source was built from committed compatibility commit `8ff307d3eae4afbe111d91784b1bcff4f4dfe2af` and the staged files were hash-verified before installation.
+
+BaseLib v3.4.5 loaded from the local mods directory and reported 280 successful patches with 0 failures. BLANK's manifest, DLL, and PCK were found. Its initializer then failed at `BlankTheSpireCode.Testing.AutoSlayEmbarkTimeoutPatch.TargetMethod()` with Harmony `System.Reflection.AmbiguousMatchException` for `MegaCrit.Sts2.Core.AutoSlay.Helpers.WaitHelper:Until`. The later `Finished mod initialization` line is not treated as a clean success because it follows that exception.
+
+The game also reported `DuplicateModelException` for `CARD.TYPHOON`, already mapped to `RyoshuMod.Typhoon` and then requested by `Typhoon`. That error occurred with the existing workshop-heavy mod set and was not isolated from those mods. The runtime log also shows automatic `settings.save` writes and existing RitsuLib workshop update activity.
+
+The local BaseLib and BLANK directories were removed after normal shutdown. The final local-mod inventory matched the pre-smoke baseline. No character, run, import, or BLANK settings/menu interaction occurred. Stage 0D.2 remains stopped pending explicit disposition of the initializer failure, the existing-mod startup conflict, and the save-write risk.

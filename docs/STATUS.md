@@ -24,8 +24,23 @@ The .NET 9 SDK is now installed as explicitly authorized. Godot was not installe
 BaseLib was restored only as a NuGet build dependency and was not installed into
 the live STS2 mods directory.
 
+Phase 0, Stage 0D.1, reproducible compatibility checkpoint and controlled
+runtime smoke test, was attempted on 2026-08-24. The compatibility derivative
+was committed as 8ff307d3eae4afbe111d91784b1bcff4f4dfe2af and rebuilt with 0
+errors. A normal Steam launch reached RUNNING MODDED. BaseLib v3.4.5 loaded and
+reported 280 successful patches with 0 failures. BLANK's DLL and PCK were
+discovered, but its initializer failed with a Harmony AmbiguousMatchException
+for the current WaitHelper.Until overloads. STS2 also reported a separate
+CARD.TYPHOON duplicate-model startup error in the existing workshop-heavy mod
+set. The temporary BaseLib and BlankTheSpire directories were removed and the
+final local-mod inventory matched the baseline.
+
+Stage 0D.1 is blocked, not complete. The log also records automatic
+settings.save synchronization and writes, so the strict no-save-change
+criterion is not proven. The full evidence is in
+docs/research/BLANK_RUNTIME_SMOKE.md. Stage 0D.2 was not started.
+
 No production application code has been started. No application framework has been initialized.
-Stage 0D has not started.
 
 ## Confirmed product requirements
 
@@ -73,7 +88,7 @@ The approach is technically relevant to the project, but it is a constrained run
 - No DLL, PDB, JSON, or PCK was produced.
 - The live STS2 mods directory was unchanged.
 - The BLANK checkout remained at the pinned commit with a clean tracked working tree.
-- Stage 0D was not started.
+- At that checkpoint Stage 0D had not started.
 
 The precise errors, warning summary, package versions, commands, and safety inventory
 are recorded in docs/research/BLANK_BUILD.md.
@@ -87,7 +102,7 @@ are recorded in docs/research/BLANK_BUILD.md.
 - Stage 0C.2 proved the reward patch was an obsolete old-runtime assertion guard, removed it from the ignored compatibility worktree, and moved four existing dialogue keys from characters.json to ancients.json to satisfy STS001.
 - The final compatibility build exits 0 with 330 warnings and produces a DLL, PDB, JSON manifest, and PCK in the sandbox output.
 - The compatibility derivative changed 12 ignored worktree files. No parent project source, original BLANK source, STS2 file, save, or live mod was changed.
-- Stage 0D was not started.
+- At that checkpoint Stage 0D had not started.
 
 ## Git and upstream baseline
 
@@ -95,6 +110,8 @@ are recorded in docs/research/BLANK_BUILD.md.
 - baseline message: chore: establish project baseline
 - Stage 0B documentation commit: e66e7862848a0b0731e885da3a932f36a277c5f6
 - Stage 0C documentation checkpoint: d8bb3cf88990a7ce1e6c0758f86f4595c9a8edc4
+- Stage 0C.2 documentation commit: 0a70d9204b34af8f18da33a9425fc144ddabdbb1
+- BLANK compatibility commit: 8ff307d3eae4afbe111d91784b1bcff4f4dfe2af
 - BLANK checkout: research/upstream/BLANKthespire
 - BLANK commit: d29b6c8aeacae7f68685e3e9c3f5d65fa88bdb80
 - BLANK branch: main
@@ -110,7 +127,7 @@ was audited without modifying game content. The installed .NET SDK is now
 
 ## Immediate work
 
-Stage 0C.2 is complete. Do not start Stage 0D or launch the compatibility derivative without a separate explicit authorization. The next recommended action is to review the sandbox build proof and decide whether runtime smoke testing is warranted.
+Stage 0D.1 is blocked after the controlled smoke test. Do not start Stage 0D.2. First review the BLANK initializer overload failure, the existing duplicate-model conflict, and the automatic settings.save and workshop-update activity. Any corrective runtime experiment needs a separately scoped authorization.
 
 ## Known decisions
 
@@ -122,8 +139,8 @@ Stage 0C.2 is complete. Do not start Stage 0D or launch the compatibility deriva
 - do not adopt BLANK's runtime contract as the canonical project schema
 - do not modify the pinned upstream checkout
 - compatibility experiments must use a separate ignored BLANK worktree
-- do not install BaseLib into the live STS2 mods directory
-- do not install Godot during Stage 0C
+- do not leave BaseLib or experimental BLANK artifacts installed in the live STS2 mods directory; any temporary install requires an explicit controlled rollback
+- do not install Godot during Phase 0
 
 ## Known unknowns
 
@@ -133,5 +150,7 @@ Stage 0C.2 is complete. Do not start Stage 0D or launch the compatibility deriva
 - exact BaseLib and runtime compatibility requirements for current STS2 versions
 - shape of the eventual canonical project schema
 - whether the fixed-shell limits are sufficient for the intended MVP
-- runtime loading and behavior of the sandbox build, since STS2 was not launched
-- whether a compatible BLANK commit is preferable to maintaining the ignored experiment
+- whether BLANK's AutoSlay timeout patch must select a specific current WaitHelper.Until overload
+- whether the existing workshop CARD.TYPHOON conflict can be separated from BLANK runtime proof
+- whether a safe smoke-test procedure can avoid automatic settings.save writes and workshop updates
+- whether a compatible BLANK commit is preferable to maintaining the committed local experiment

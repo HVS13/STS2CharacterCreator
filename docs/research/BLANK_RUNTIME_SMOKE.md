@@ -1,0 +1,229 @@
+# BLANK Runtime Smoke Report
+
+Audit date: 2026-08-24
+
+Test window: approximately 18:19-18:21 Asia/Jakarta, based on the STS2 log timestamps and final log write time.
+
+Status: **Stage 0D.1 blocked**
+
+This report covers only the reproducible compatibility checkpoint and controlled
+runtime smoke test. Stage 0D.2 was not started.
+
+## Outcome
+
+The committed compatibility derivative rebuilt successfully and produced the
+expected runtime files. The official BaseLib v3.4.5 release files were staged
+from GitHub and hash-verified. Only the staged BaseLib and BLANK directories
+were temporarily installed in the live mods directory.
+
+The normal Steam launch reached the modded startup path. BaseLib loaded and
+reported 280 successful patches with 0 failures. BLANK's assembly and PCK were
+discovered, but its initializer threw a Harmony `AmbiguousMatchException` while
+resolving `WaitHelper.Until`. STS2 then reported a separate duplicate-model
+startup error for `CARD.TYPHOON` involving an existing workshop mod.
+
+The two temporary local mod directories were removed after normal shutdown, and
+the final local-mod inventory matched the baseline. No gameplay, run, character
+import, or character creation was performed. No Godot installation, website,
+desktop application, or additional local mod was introduced.
+
+The strict no-save-change condition is not proven. The log records automatic
+cloud synchronization, deletion of a stale `settings.save`, and writes to
+`settings.save` during startup and shutdown. These were not intentional edits,
+but they prevent this smoke test from being classified as a clean Stage 0D.1
+pass.
+
+## STS2 environment
+
+- Steam branch: `public-beta`
+- Steam build ID: `24724944`
+- Local `sts2.dll` ProductVersion: `0.1.0+41cef1ea4657c524aa50e870df009e56337e8c32`
+- Log-reported game version: `v0.111.0`
+
+## Git checkpoints
+
+- Stage 0C.2 project documentation commit: `0a70d9204b34af8f18da33a9425fc144ddabdbb1`.
+- BLANK compatibility branch: `experiment/current-sts2-compat`.
+- BLANK compatibility commit: `8ff307d3eae4afbe111d91784b1bcff4f4dfe2af`.
+- Compatibility parent commit: `d29b6c8aeacae7f68685e3e9c3f5d65fa88bdb80`.
+- The compatibility worktree was clean after the commit. No push was performed.
+
+## Build proof
+
+The compatibility worktree was rebuilt from the committed compatibility commit.
+The command ran from `research/upstream/BLANKthespire-compat/mod`:
+
+```powershell
+dotnet build .\BlankTheSpire.csproj --no-restore -t:Rebuild -p:Sts2Path="D:/SteamLibrary/steamapps/common/Slay the Spire 2" -p:ModsPath="C:/Codex/STS2CharacterCreator/research/build-output/blank-mods/"
+```
+
+Result: exit code 0, 330 warnings, 0 errors. The build produced the BLANK DLL,
+PDB, JSON manifest, and PCK in the ignored sandbox output. Only the DLL, JSON,
+and PCK were staged for the live smoke test.
+
+## Runtime artifacts
+
+### BaseLib
+
+The source checkout was at tag `v3.4.5`, commit
+`22757933ba10adc4322a628519a233a567507d87`. The individual runtime files came
+from the [official BaseLib v3.4.5 release](https://github.com/Alchyr/BaseLib-StS2/releases/tag/v3.4.5).
+They were staged under the ignored path
+`research/build-output/runtime-staging/BaseLib/`.
+
+| File | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `BaseLib.dll` | 1,090,560 | `AD2F89E43E8B31DEBFAB65D783353D9429EBA59A2CFE904FF933A894CE79D32E` |
+| `BaseLib.json` | 271 | `6D64D1BA9E48ABF6E15479A6BDA6F2D2B75A277453361A96CBCDD5508ACCCBA3` |
+| `BaseLib.pck` | 131,880 | `A405F900CCFF9FEBD5DD16733DC6D40E8E71BB1237F4578C5291271C97AB2DAA` |
+
+### BLANK
+
+The files were staged under the ignored path
+`research/build-output/runtime-staging/BlankTheSpire/`. The staging copy was
+refreshed after the forced rebuild from compatibility commit
+`8ff307d3eae4afbe111d91784b1bcff4f4dfe2af`.
+
+The staged manifest reports BLANK version `v0.1.7`.
+
+| File | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `BlankTheSpire.dll` | 437,760 | `34B9A469A3EF2A62654320A9855835291A37FBD9192B361ABDC1A049FBF916B3` |
+| `BlankTheSpire.json` | 296 | `FCB94D79DA8477E48D478134C4EFACBD0478DB7070FBE383E4F0A576A80EA25F` |
+| `BlankTheSpire.pck` | 151,805 | `C8F9F834D4AAB213023DBB19EC19EB8F95D3DECA6676B51ABB4B40CCA3D99351` |
+
+All six installed files matched their staging hashes before rollback. The
+staging directories are ignored build output and are not project source.
+
+## Baseline, install, and rollback
+
+The live game path was:
+
+`D:\SteamLibrary\steamapps\common\Slay the Spire 2`
+
+The live mods path was:
+
+`D:\SteamLibrary\steamapps\common\Slay the Spire 2\mods`
+
+Before installation, the only local mod was `UnifiedSavePath`. The target
+directories `BaseLib` and `BlankTheSpire` were absent. The complete baseline
+inventory was saved to the ignored file
+`research/build-output/pre-smoke-mods-backup/live-mods-before.csv`.
+
+The pre-existing log was copied to the ignored path
+`research/build-output/sts2d1-log-before/godot.log` before launch. Only these
+two directories were installed temporarily:
+
+- `mods\BaseLib`
+- `mods\BlankTheSpire`
+
+The game was closed through its normal window-close path. Only those two
+directories were then removed. The final checks reported:
+
+- `BaseLib` present: false
+- `BlankTheSpire` present: false
+- STS2 process present: false
+- final local-mod inventory matches baseline: true
+
+## Launch and log evidence
+
+STS2 was launched through Steam with:
+
+```powershell
+Start-Process -FilePath 'steam://rungameid/2868840'
+```
+
+The process appeared at the expected executable path, became responsive, and
+was closed normally. No gameplay screen, run, character, or settings menu was
+opened or interacted with. No direct visual confirmation of a BLANK settings
+or menu screen was made.
+
+The final log was copied to the ignored path
+`research/build-output/sts2d1-log-after/godot.log`. Relevant evidence:
+
+- Lines 19-20 found the local BaseLib and BLANK manifests.
+- Line 21 reported the BLANK manifest's old-style dependency without a minimum
+  version.
+- Line 149 found an existing Steam Workshop BaseLib v3.4.5 and disabled that
+  duplicate in favor of the local staged copy.
+- Lines 1254-1280 loaded local BaseLib v3.4.5 and reported `280 patches
+  successfully, 0 failed`.
+- Lines 1281-1284 loaded the local BLANK manifest, DLL, and PCK.
+- Lines 1285-1360 recorded the BLANK initializer exception. Lines 1288-1289
+  identify `System.Reflection.AmbiguousMatchException` for the Harmony target
+  `MegaCrit.Sts2.Core.AutoSlay.Helpers.WaitHelper:Until`.
+- Line 1362 says BLANK initialization finished, but that line follows the
+  initializer exception and is not evidence of a clean BLANK initialization.
+- Line 1619 reported `RUNNING MODDED` with 53 mods loaded, 54 total.
+- Line 7787 reported creation of `user://forged/cards` with no forged cards.
+  This was an empty runtime directory creation, not character data creation.
+- Line 7804 reported a game-startup error. Lines 7880-7883 identify a
+  `DuplicateModelException` for `CARD.TYPHOON`, already mapped to
+  `RyoshuMod.Typhoon`, then requested by `Typhoon`. This occurred in the
+  existing workshop-heavy mod set and was not isolated from those mods.
+- Lines 1624-1625 recorded cloud save synchronization and stale
+  `settings.save` deletion. Lines 7976 and 8049 recorded writes to
+  `settings.save`.
+- Lines 8035-8043 show an existing RitsuLib workshop updater queued three
+  workshop item updates. This was not caused by copying a new local mod, but it
+  is external activity during the smoke test.
+
+## Log finding classification
+
+A. Existing/base/workshop findings included the Steam Workshop BaseLib duplicate, the `CARD.TYPHOON` conflict involving `RyoshuMod`, asset-cache warnings, and RitsuLib's existing workshop update activity.
+
+B. BaseLib loaded successfully. It reported two skipped legacy targets, `ExhaustivePatch` and `PurgePatch`, but reported 280 patches applied and 0 failed.
+
+C. BLANK produced the old-style dependency warning, the missing minimum-game-version warning, the initializer Harmony exception, and the empty `user://forged/cards` directory creation.
+
+D. Fatal startup findings were the BLANK initializer exception and the later duplicate-model startup error. No missing BLANK DLL or PCK error was reported.
+
+## Result by component
+
+| Component | Result | Evidence |
+| --- | --- | --- |
+| Compatibility build | Pass | Exit 0, 330 warnings, 0 errors |
+| BaseLib runtime load | Pass | v3.4.5 loaded, 280 patches applied, 0 failed |
+| BLANK file discovery | Pass | Local DLL and PCK loaded |
+| BLANK initializer | Fail | Harmony ambiguous overload exception |
+| Overall game startup | Fail | Duplicate model startup error was reported |
+| Normal shutdown | Pass | Window close returned true and process exited |
+| Rollback | Pass | Only two temporary directories removed; inventory matched |
+| Strict no-save-change condition | Not proven | Log recorded automatic `settings.save` writes |
+
+## Commands used
+
+The principal commands for this checkpoint were:
+
+```powershell
+git -C research/upstream/BLANKthespire-compat status --short --branch
+git -C research/upstream/BLANKthespire-compat rev-parse HEAD
+dotnet build .\BlankTheSpire.csproj --no-restore -t:Rebuild -p:Sts2Path="D:/SteamLibrary/steamapps/common/Slay the Spire 2" -p:ModsPath="C:/Codex/STS2CharacterCreator/research/build-output/blank-mods/"
+Start-Process -FilePath 'steam://rungameid/2868840'
+rg -n -C 4 "RUNNING MODDED|forged/cards|Encountered error on game startup|DuplicateModelException|ModelDb already contains ID CARD\.TYPHOON" "C:\Users\USER\AppData\Roaming\SlayTheSpire2\logs\godot.log"
+Remove-Item -LiteralPath 'D:\SteamLibrary\steamapps\common\Slay the Spire 2\mods\BaseLib','D:\SteamLibrary\steamapps\common\Slay the Spire 2\mods\BlankTheSpire' -Recurse -Force
+```
+
+The artifact download, copy, hash, inventory, and process checks were run with
+PowerShell `Invoke-RestMethod`, `Copy-Item`, `Get-FileHash`,
+`Get-ChildItem`, and `Get-Process`. No installer or package manager was used
+for the runtime smoke test.
+
+## Safety and stopping point
+
+- No STS2 character was created, imported, or played.
+- No run was started.
+- No forged character or card data was created. BLANK only created its empty
+  `user://forged/cards` directory during initialization.
+- No source was copied into the parent project.
+- The original BLANK checkout remained at its pinned commit and clean.
+- No Godot installation or launch occurred.
+- No BLANK website or desktop app work occurred.
+- No Stage 0D.2 work occurred.
+- The temporary local mod installation was rolled back.
+- Automatic `settings.save` and existing workshop updater activity remain risks
+  from this launch and are documented above.
+
+Stage 0D.1 stops here. Do not begin Stage 0D.2 until the BLANK initializer
+failure, the existing duplicate-model conflict, and the save-write risk have
+an explicit next-stage disposition.

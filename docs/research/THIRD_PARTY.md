@@ -106,7 +106,25 @@ Checkout state: clean, detached HEAD
 
 Package identity: Alchyr.Sts2.BaseLib version 3.4.5
 
-Reuse decision: source was inspected for current reward serialization and pool contracts. No BaseLib source was copied or vendored. The compatibility build uses the NuGet package only, and BaseLib was not installed into live STS2 mods.
+Reuse decision: source was inspected for current reward serialization and pool contracts. No BaseLib source was copied or vendored. The compatibility build uses the NuGet package. Official release assets were temporarily used only for the controlled Stage 0D.1 smoke test and were removed during rollback.
+
+#### BaseLib v3.4.5 official runtime asset audit
+
+Official release: https://github.com/Alchyr/BaseLib-StS2/releases/tag/v3.4.5
+
+Release tag: `v3.4.5`
+
+Release source commit: `22757933ba10adc4322a628519a233a567507d87`
+
+GitHub release metadata reported publication at `2026-08-14T01:02:36Z`. The individual release assets, rather than the source repository or a third-party mirror, were used for the controlled Stage 0D.1 smoke test:
+
+| File | Bytes | SHA-256 |
+| --- | ---: | --- |
+| `BaseLib.dll` | 1,090,560 | `AD2F89E43E8B31DEBFAB65D783353D9429EBA59A2CFE904FF933A894CE79D32E` |
+| `BaseLib.json` | 271 | `6D64D1BA9E48ABF6E15479A6BDA6F2D2B75A277453361A96CBCDD5508ACCCBA3` |
+| `BaseLib.pck` | 131,880 | `A405F900CCFF9FEBD5DD16733DC6D40E8E71BB1237F4578C5291271C97AB2DAA` |
+
+The files were staged under the ignored path `research/build-output/runtime-staging/BaseLib/`. They were installed temporarily for the controlled smoke test, hash-verified, and removed during rollback. No BaseLib source was copied or vendored into this repository, and no BaseLib files remain in the live STS2 mods directory.
 
 ### STS2 ModAnalyzers source audit
 
