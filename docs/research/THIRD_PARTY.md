@@ -13,36 +13,53 @@ Do not rely only on this research note for legal compliance.
 1. permissively licensed dependencies
 2. adapters around upstream libraries
 3. small, attributable copied components when they materially save work
-4. independent implementation informed by public behavior/documentation
+4. independent implementation informed by public behavior or documentation
 
 ### Avoid
 
 - copying minified browser bundles from closed-source products
 - copying repositories with no explicit reusable license
-- distributing decompiled STS2 source/assets
+- distributing decompiled STS2 source or assets
 - coupling the canonical project model to a third-party framework
 
-## Candidates
+## Verified upstream provenance
 
 ### BLANK the spire
 
-Repository:
+Repository: https://github.com/ryanrinkel/BLANKthespire
 
-https://github.com/ryanrinkel/BLANKthespire
+Local research checkout: research/upstream/BLANKthespire
 
-Why it matters:
+Pinned branch: main
 
-- demonstrates a data-driven STS2 character runtime
-- has a constrained contract/schema
-- appears highly relevant to structured-data -> playable-character execution
-- may contain runtime pieces worth adapting
+Pinned commit: d29b6c8aeacae7f68685e3e9c3f5d65fa88bdb80
 
-Current research status:
+Remote: https://github.com/ryanrinkel/BLANKthespire
 
-- high priority for Phase 0
-- verify exact license and preserve notices before reuse
-- first prove the upstream mod builds unchanged
-- do not adopt its schema as our canonical schema
+Checkout state: clean at the pinned commit. The checkout is ignored by the root .gitignore and is not tracked in this repository.
+
+License file: LICENSE at the pinned commit
+
+License: MIT License
+
+Copyright notice: Copyright (c) 2026 Ryan Rinkel
+
+Permissions: use, copy, modify, merge, publish, distribute, sublicense, and sell copies of the original work without restriction.
+
+Obligations: include the copyright notice and the MIT permission notice in copies or substantial portions of the work. Retain the warranty disclaimer and limitation of liability.
+
+Scope note: the LICENSE file states that the MIT license covers the repository's original code and content only. Slay the Spire 2 and Mega Crit intellectual property is excluded. The repository describes itself as unofficial and says it does not include Mega Crit code, binaries, or copyrighted game data.
+
+Reuse decision: no BLANK source was copied or vendored during Stage 0B. The repository is being used as a local, pinned research checkout only. Its schema is not adopted as the canonical project format.
+
+Research findings:
+
+- BLANK demonstrates a data-driven STS2 character runtime with fixed compiled shells and user-local JSON.
+- It uses BaseLib, Harmony, and Godot .NET build tooling.
+- Its runtime contract and fixed slot limits are documented in docs/research/BLANK_RUNTIME.md.
+- Its source was inspected at the pinned commit. No upstream files were modified.
+
+## Candidates
 
 ### BaseLib-StS2
 
@@ -58,7 +75,7 @@ Why it matters:
 Policy:
 
 - prefer dependency use
-- do not fork/vendor without a specific reason
+- do not fork or vendor without a specific reason
 - verify current license and compatible version before adoption
 
 ### sts2-mod-template
@@ -70,13 +87,13 @@ https://github.com/sethmcleod/sts2-mod-template
 Why it matters:
 
 - working mod skeleton
-- build/release/localization/assets patterns
-- potential foundation for future standalone export
+- build, release, localization, and asset patterns
+- potential foundation for a future standalone export
 
 Policy:
 
 - strong candidate for permissively licensed reuse
-- verify license at pinned commit
+- verify license at a pinned commit
 - record copied paths and modifications
 
 ### STS2 Modding MCP
@@ -89,8 +106,8 @@ Why it matters:
 
 - game inspection
 - code generation
-- build/deploy utilities
-- automated development/testing ideas
+- build and deploy utilities
+- automated development and testing ideas
 
 Policy:
 
@@ -105,7 +122,7 @@ https://github.com/cgxjdzz/AgentTheSpire
 
 Why it matters:
 
-- build/deployment helpers
+- build and deployment helpers
 - environment discovery
 - packaging ideas
 
@@ -122,13 +139,13 @@ https://github.com/BAKAOLC/STS2-RitsuLib
 
 Why it matters:
 
-- lifecycle/content/persistence/localization/compatibility helpers
+- lifecycle, content, persistence, localization, and compatibility helpers
 
 Policy:
 
 - optional integration
 - do not make the project format depend on it
-- verify license/version before adoption
+- verify license and version before adoption
 
 ### KitLib
 
@@ -138,8 +155,8 @@ https://github.com/WRXinYue/STS2-KitLib
 
 Why it matters:
 
-- testing/debugging/browser/log utilities
-- possible future developer/test bridge
+- testing, debugging, browser, and log utilities
+- possible future developer or test bridge
 
 Policy:
 
@@ -148,7 +165,7 @@ Policy:
 
 ### MinionLib
 
-Research candidate for advanced companions/minions.
+Research candidate for advanced companions and minions.
 
 Policy:
 
@@ -171,9 +188,9 @@ Use as:
 
 Do not:
 
-- copy its minified/deployed JavaScript
+- copy its minified or deployed JavaScript
 - copy branding
-- copy proprietary art/assets
+- copy proprietary art or assets
 - assume browser-delivered code grants reuse rights
 
 If users provide exported project JSON, it may be analyzed for interoperability.
@@ -183,9 +200,9 @@ If users provide exported project JSON, it may be analyzed for interoperability.
 When actual third-party source is adopted, add entries containing:
 
 - upstream repository
-- pinned commit/tag
+- pinned commit or tag
 - license
 - local path
-- copied/adapted files
+- copied or adapted files
 - material modifications
 - required notices
