@@ -16,10 +16,9 @@ Phase 0, Stage 0C, unchanged BLANK build, was attempted and is blocked by an
 external STS2 API compatibility mismatch. The evidence is in
 docs/research/BLANK_BUILD.md.
 
-Phase 0, Stage 0C.1, current STS2 compatibility investigation and minimal BLANK
-adaptation, is complete as a bounded experiment but remains blocked from a
-clean build. The experiment and exact blockers are in
-docs/research/BLANK_COMPATIBILITY.md.
+Phase 0, Stage 0C.1, current STS2 compatibility investigation and minimal BLANK adaptation, is complete as a bounded experiment. Its two final blockers were resolved in Stage 0C.2. The investigation and final proof are in docs/research/BLANK_COMPATIBILITY.md.
+
+Phase 0, Stage 0C.2, final BLANK compatibility blockers, is complete as a sandbox build proof. The compatibility worktree now builds with 0 errors and 330 warnings and produces a DLL, PDB, JSON manifest, and PCK under the ignored research/build-output/blank-mods/ path. STS2 was not launched, and live mods, save files, and game files were not modified.
 
 The .NET 9 SDK is now installed as explicitly authorized. Godot was not installed.
 BaseLib was restored only as a NuGet build dependency and was not installed into
@@ -81,25 +80,21 @@ are recorded in docs/research/BLANK_BUILD.md.
 
 ## Stage 0C.1 findings
 
-- The installed STS2 branch setting is `public-beta`, with Steam build ID `24724944`.
+- The installed STS2 branch setting is public-beta, with Steam build ID 24724944.
 - Local metadata confirms the result-location and damage-hook signature changes.
-- BaseLib 3.4.5 was tested in a separate ignored worktree. It did not remove the
-  original five override errors.
-- Five API migrations and three additional clear `CreatureCmd.Damage` call-site
-  fixes reduced the final compatibility build to 2 errors and 330 warnings.
-- The remaining errors involve the removed `CardCreationOptions.CustomCardPool`
-  and missing `AssertUniformOddsIfSingleRarityPool` target, plus an analyzer
-  localization failure. Both require separate semantic investigation.
-- The compatibility derivative changed 9 ignored worktree files. No parent project
-  source, original BLANK source, STS2 file, save, or live mod was changed.
-- No DLL, PDB, JSON, or PCK was produced. Stage 0D was not started.
+- BaseLib 3.4.5 was tested in a separate ignored worktree. It did not remove the original five override errors.
+- Five API migrations and three additional clear CreatureCmd.Damage call-site fixes reduced the final compatibility build to 2 errors and 330 warnings.
+- Stage 0C.2 proved the reward patch was an obsolete old-runtime assertion guard, removed it from the ignored compatibility worktree, and moved four existing dialogue keys from characters.json to ancients.json to satisfy STS001.
+- The final compatibility build exits 0 with 330 warnings and produces a DLL, PDB, JSON manifest, and PCK in the sandbox output.
+- The compatibility derivative changed 12 ignored worktree files. No parent project source, original BLANK source, STS2 file, save, or live mod was changed.
+- Stage 0D was not started.
 
 ## Git and upstream baseline
 
 - initial baseline commit: ed350f410efcbd189292d8aad5b4b793d42b7836
 - baseline message: chore: establish project baseline
 - Stage 0B documentation commit: e66e7862848a0b0731e885da3a932f36a277c5f6
-- Stage 0C documentation checkpoint: 405f52393429484627b7280da23360025fec56c4
+- Stage 0C documentation checkpoint: d8bb3cf88990a7ce1e6c0758f86f4595c9a8edc4
 - BLANK checkout: research/upstream/BLANKthespire
 - BLANK commit: d29b6c8aeacae7f68685e3e9c3f5d65fa88bdb80
 - BLANK branch: main
@@ -115,12 +110,7 @@ was audited without modifying game content. The installed .NET SDK is now
 
 ## Immediate work
 
-Do not start Stage 0D yet.
-
-First resolve the two remaining compatibility blockers identified by Stage 0C.1.
-The next decision is whether to authorize a focused reward-pool and localization
-investigation, or to obtain a compatible BLANK and STS2 pair. Do not install or
-launch the compatibility derivative.
+Stage 0C.2 is complete. Do not start Stage 0D or launch the compatibility derivative without a separate explicit authorization. The next recommended action is to review the sandbox build proof and decide whether runtime smoke testing is warranted.
 
 ## Known decisions
 
@@ -143,5 +133,5 @@ launch the compatibility derivative.
 - exact BaseLib and runtime compatibility requirements for current STS2 versions
 - shape of the eventual canonical project schema
 - whether the fixed-shell limits are sufficient for the intended MVP
-- whether a compatible BLANK commit exists for the installed STS2 API
-- whether a successful PCK-producing build requires an external Godot executable
+- runtime loading and behavior of the sandbox build, since STS2 was not launched
+- whether a compatible BLANK commit is preferable to maintaining the ignored experiment

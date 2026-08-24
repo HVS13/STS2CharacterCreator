@@ -1,6 +1,6 @@
 # BLANK Build Report
 
-Status: **Stage 0C original blocked; Stage 0C.1 bounded adaptation blocked**
+Status: **Stage 0C.2 complete as a bounded sandbox build proof**
 
 Audit date: 2026-08-24
 
@@ -183,17 +183,24 @@ dotnet build .\BlankTheSpire.csproj --no-restore -clp:ErrorsOnly -p:Sts2Path="D:
 
 Stage 0D was not started.
 
-## Remaining blockers
+## Final 0C blockers
 
-- Resolve the current `CardCreationOptions` reward-pool contract and replacement
-  patch point, or defer that adaptation to a later explicitly authorized stage.
-- Resolve the `STS001` localization analyzer mismatch without weakening or deleting
-  localization content.
-- Find a BLANK commit compatible with the installed STS2 assembly, or defer broader
-  source adaptation to a later explicitly authorized stage.
-- A successful PCK-producing build remains unproven.
-- Godot external executable requirements remain untested because compilation
-  failed first.
-- BaseLib is available to the build through NuGet but is not installed in STS2.
+The two final Stage 0C.1 compile blockers were resolved only in the ignored compatibility worktree research/upstream/BLANKthespire-compat.
 
-Stage 0D was not started.
+The old reward patch referenced CardCreationOptions.CustomCardPool and Harmony target AssertUniformOddsIfSingleRarityPool. Both are absent from the installed sts2.dll. The old patch only forced uniform odds for a single-rarity custom pool. It did not select a pool or card. The patch was removed as obsolete for the current runtime. No speculative replacement hook was added. Current supported members are CardPools, CardPoolFilter, WithCardPools, WithFilter, WithRarityOdds, and TryGetSingleRarityInPool.
+
+The STS001 analyzer error was emitted by Alchyr.Sts2.ModAnalyzers 0.1.9, Sts2ModAnalyzers.dll, rule STS001, at BlankTheSpireCode/Character/BlankTheSpire.cs(13,14). Its four missing keys were already present in characters.json but belonged in ancients.json. They were moved without suppressing the analyzer or deleting localization content. The project already passed both files as analyzer additional files.
+
+The exact final command was:
+
+dotnet build ./research/upstream/BLANKthespire-compat/mod/BlankTheSpire.csproj --no-restore -p:Sts2Path="D:/SteamLibrary/steamapps/common/Slay the Spire 2" -p:ModsPath="C:/Codex/STS2CharacterCreator/research/build-output/blank-mods/"
+
+Result: exit code 0, 330 warnings, 0 errors. The sandbox output contains a DLL, PDB, JSON manifest, and PCK. No publish command was used. STS2 was not launched.
+
+## Remaining limitations after Stage 0C.2
+
+- runtime loading and in-game behavior remain untested because STS2 was not launched
+- live BaseLib remains uninstalled
+- Godot remains uninstalled and unlaunched
+- the compatibility derivative remains an ignored, uncommitted experiment
+- Stage 0D was not started

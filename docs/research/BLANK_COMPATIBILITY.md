@@ -1,6 +1,6 @@
 # BLANK Compatibility Investigation
 
-Status: **Stage 0C.1 blocked after bounded adaptation**
+Status: **Stage 0C.2 complete as a bounded sandbox build proof**
 
 Audit date: **2026-08-24**
 
@@ -287,7 +287,60 @@ git -C research/upstream/BLANKthespire status --short --branch
 
 ## Recommendation
 
-Keep Stage 0D stopped. The next authorized decision is either to investigate a
-current-compatible BLANK/BaseLib/API pair, or to authorize a separate bounded
-investigation of the reward-pool and localization contracts. Do not install or
-launch this derivative.
+Keep Stage 0D stopped. Stage 0C.2 is complete as a bounded sandbox build proof. Do not install or launch this derivative without separate authorization.
+
+## Final 0C blockers
+
+Stage 0C.2 resolved the two final compile blockers in the ignored compatibility worktree. The original BLANK checkout was not changed.
+
+### Reward-pool migration
+
+Old behavior: SingleRarityRewardPoolPatch patched the old CardCreationOptions.AssertUniformOddsIfSingleRarityPool method. It read the old CustomCardPool property and changed RarityOdds to Uniform when the pool contained one rarity, then skipped the old assertion. It did not select a pool, card, merchant source, or serialized reward.
+
+Current API: local sts2.dll exposes CardCreationOptions.CardPools, CardPoolFilter, WithCardPools, WithFilter, WithRarityOdds, and TryGetSingleRarityInPool. It does not expose CustomCardPool or AssertUniformOddsIfSingleRarityPool. Current CardReward constructors use CardCreationOptions, or explicit offered cards plus reroll options.
+
+Implementation: removed the obsolete SingleRarityRewardPoolPatch.cs from the ignored compatibility worktree. No replacement hook was added. BaseLib 3.4.5 was inspected at tag v3.4.5, commit 22757933ba10adc4322a628519a233a567507d87. Its current serialization path uses card pools and filters, and its legacy path is conditional on the old property being present. This confirms that a property rename or a new broad Harmony patch would not be a justified equivalent.
+
+Behavioral difference: none for the targeted local runtime, because the old assertion target and property are absent. The old guard is no longer callable. Behavior on older runtimes is outside this compatibility target and was not preserved by adding a speculative current-runtime hook.
+
+### STS001 investigation
+
+Full diagnostic from the pre-fix build:
+
+BlankTheSpireCode/Character/BlankTheSpire.cs(13,14): error STS001:
+Localization THE_ARCHITECT.talk.BLANKTHESPIRE-BLANK_THE_SPIRE.0-0r.char,
+THE_ARCHITECT.talk.BLANKTHESPIRE-BLANK_THE_SPIRE.0-0r.next,
+THE_ARCHITECT.talk.BLANKTHESPIRE-BLANK_THE_SPIRE.0-1r.ancient,
+THE_ARCHITECT.talk.BLANKTHESPIRE-BLANK_THE_SPIRE.0-attack not found for
+symbol 'BlankTheSpire.BlankTheSpireCode.Character.BlankTheSpire'
+
+The analyzer was Alchyr.Sts2.ModAnalyzers 0.1.9, assembly Sts2ModAnalyzers.dll, rule STS001, severity Error. Its source was checked at commit 46c6a91ff24d47062d6b28cb734a8f855e1da0b6, with MIT licensing. The compiler command included all four localization files as AdditionalFiles, so analyzer discovery was working.
+
+Root cause: the four required THE_ARCHITECT.talk keys were in localization/eng/characters.json. The analyzer requires those dialogue keys in localization/eng/ancients.json. The empty ancients.json made the keys appear missing.
+
+Fix: moved the four existing keys to ancients.json. No localization content was deleted, invented, or suppressed.
+
+### Build proof
+
+The final normal build exited 0 with 330 warnings and 0 errors. It produced:
+
+- research/build-output/blank-mods/BlankTheSpire/BlankTheSpire.dll
+- research/build-output/blank-mods/BlankTheSpire/BlankTheSpire.pdb
+- research/build-output/blank-mods/BlankTheSpire/BlankTheSpire.json
+- research/build-output/blank-mods/BlankTheSpire/BlankTheSpire.pck
+
+Command:
+
+dotnet build ./research/upstream/BLANKthespire-compat/mod/BlankTheSpire.csproj --no-restore -p:Sts2Path="D:/SteamLibrary/steamapps/common/Slay the Spire 2" -p:ModsPath="C:/Codex/STS2CharacterCreator/research/build-output/blank-mods/"
+
+This proves compilation and sandbox packaging. It does not prove runtime loading because STS2 was not launched.
+
+### Safety
+
+- original BLANK checkout: clean at d29b6c8aeacae7f68685e3e9c3f5d65fa88bdb80
+- BaseLib source checkout: clean at v3.4.5, commit 22757933ba10adc4322a628519a233a567507d87
+- ModAnalyzers source checkout: clean at commit 46c6a91ff24d47062d6b28cb734a8f855e1da0b6
+- live mods: unchanged; normalized before/after inventories matched and no BlankTheSpire directory was present
+- save files, game files, and unrelated mods: not modified
+- STS2: not launched
+- Stage 0D: not started

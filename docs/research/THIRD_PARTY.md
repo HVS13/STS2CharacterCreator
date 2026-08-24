@@ -71,7 +71,7 @@ license. It is not part of the parent repository history and was not pushed.
 - tracking: ignored by the parent repository's `research/upstream/` rule
 - original checkout: `research/upstream/BLANKthespire` remained clean
 
-The derivative changed only these local experimental paths:
+The final derivative changed only these local experimental paths:
 
 - `mod/BlankTheSpire.csproj`, BaseLib 3.2.1 to 3.4.5
 - `mod/BlankTheSpireCode/Engine/DataCard.cs`
@@ -82,12 +82,47 @@ The derivative changed only these local experimental paths:
 - `mod/BlankTheSpireCode/Powers/ForgedRelic.cs`
 - `mod/BlankTheSpireCode/Powers/ForgedStatusPower.cs`
 - `mod/BlankTheSpireCode/Powers/SpikeSharpenPower.cs`
+- `mod/BlankTheSpire/localization/eng/characters.json`
+- `mod/BlankTheSpire/localization/eng/ancients.json`
+- removal of the obsolete `mod/BlankTheSpireCode/Engine/SingleRarityRewardPoolPatch.cs`
 
 The source changes are a local API compatibility experiment. No source was
 copied into this parent repository, no upstream file was modified, and the
 BLANK schema/runtime contract was not adopted as the canonical project format.
 If this derivative is ever distributed, retain the BLANK copyright and MIT
 notices and review any non-BLANK dependencies separately.
+
+### BaseLib source audit
+
+Repository: https://github.com/Alchyr/BaseLib-StS2
+
+Local research checkout: research/upstream/BaseLib-StS2
+
+Exact source: tag v3.4.5, commit 22757933ba10adc4322a628519a233a567507d87
+
+License: MIT License, from LICENSE.txt at that checkout
+
+Checkout state: clean, detached HEAD
+
+Package identity: Alchyr.Sts2.BaseLib version 3.4.5
+
+Reuse decision: source was inspected for current reward serialization and pool contracts. No BaseLib source was copied or vendored. The compatibility build uses the NuGet package only, and BaseLib was not installed into live STS2 mods.
+
+### STS2 ModAnalyzers source audit
+
+Repository: https://github.com/Alchyr/StS2ModAnalyzers
+
+Local research checkout: research/upstream/StS2ModAnalyzers
+
+Exact source: commit 46c6a91ff24d47062d6b28cb734a8f855e1da0b6
+
+License: MIT, from package repository metadata and source checkout
+
+Package identity: Alchyr.Sts2.ModAnalyzers version 0.1.9
+
+Analyzer assembly: Sts2ModAnalyzers.dll
+
+Reuse decision: source and packaged analyzer behavior were inspected to explain STS001. No analyzer source was copied, modified, or suppressed.
 
 ## Candidates
 
