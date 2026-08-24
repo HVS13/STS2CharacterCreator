@@ -16,6 +16,11 @@ Phase 0, Stage 0C, unchanged BLANK build, was attempted and is blocked by an
 external STS2 API compatibility mismatch. The evidence is in
 docs/research/BLANK_BUILD.md.
 
+Phase 0, Stage 0C.1, current STS2 compatibility investigation and minimal BLANK
+adaptation, is complete as a bounded experiment but remains blocked from a
+clean build. The experiment and exact blockers are in
+docs/research/BLANK_COMPATIBILITY.md.
+
 The .NET 9 SDK is now installed as explicitly authorized. Godot was not installed.
 BaseLib was restored only as a NuGet build dependency and was not installed into
 the live STS2 mods directory.
@@ -74,11 +79,27 @@ The approach is technically relevant to the project, but it is a constrained run
 The precise errors, warning summary, package versions, commands, and safety inventory
 are recorded in docs/research/BLANK_BUILD.md.
 
+## Stage 0C.1 findings
+
+- The installed STS2 branch setting is `public-beta`, with Steam build ID `24724944`.
+- Local metadata confirms the result-location and damage-hook signature changes.
+- BaseLib 3.4.5 was tested in a separate ignored worktree. It did not remove the
+  original five override errors.
+- Five API migrations and three additional clear `CreatureCmd.Damage` call-site
+  fixes reduced the final compatibility build to 2 errors and 330 warnings.
+- The remaining errors involve the removed `CardCreationOptions.CustomCardPool`
+  and missing `AssertUniformOddsIfSingleRarityPool` target, plus an analyzer
+  localization failure. Both require separate semantic investigation.
+- The compatibility derivative changed 9 ignored worktree files. No parent project
+  source, original BLANK source, STS2 file, save, or live mod was changed.
+- No DLL, PDB, JSON, or PCK was produced. Stage 0D was not started.
+
 ## Git and upstream baseline
 
 - initial baseline commit: ed350f410efcbd189292d8aad5b4b793d42b7836
 - baseline message: chore: establish project baseline
 - Stage 0B documentation commit: e66e7862848a0b0731e885da3a932f36a277c5f6
+- Stage 0C documentation checkpoint: 405f52393429484627b7280da23360025fec56c4
 - BLANK checkout: research/upstream/BLANKthespire
 - BLANK commit: d29b6c8aeacae7f68685e3e9c3f5d65fa88bdb80
 - BLANK branch: main
@@ -96,9 +117,10 @@ was audited without modifying game content. The installed .NET SDK is now
 
 Do not start Stage 0D yet.
 
-First resolve the compatibility question identified by Stage 0C. The next decision is
-whether to obtain a compatible BLANK and STS2 pair, or to formally defer source
-adaptation until a later authorized stage. Do not patch BLANK as part of this report.
+First resolve the two remaining compatibility blockers identified by Stage 0C.1.
+The next decision is whether to authorize a focused reward-pool and localization
+investigation, or to obtain a compatible BLANK and STS2 pair. Do not install or
+launch the compatibility derivative.
 
 ## Known decisions
 
@@ -109,6 +131,7 @@ adaptation until a later authorized stage. Do not patch BLANK as part of this re
 - do not build the desktop UI before runtime feasibility is established
 - do not adopt BLANK's runtime contract as the canonical project schema
 - do not modify the pinned upstream checkout
+- compatibility experiments must use a separate ignored BLANK worktree
 - do not install BaseLib into the live STS2 mods directory
 - do not install Godot during Stage 0C
 

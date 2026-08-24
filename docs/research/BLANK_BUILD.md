@@ -1,6 +1,6 @@
 # BLANK Build Report
 
-Status: **Stage 0C blocked by an external STS2 API mismatch**
+Status: **Stage 0C original blocked; Stage 0C.1 bounded adaptation blocked**
 
 Audit date: 2026-08-24
 
@@ -122,9 +122,74 @@ The upstream Git checkout remained at the pinned commit with a clean tracked
 working tree. Restore/build generated ignored build metadata under the upstream
 checkout, but no source files were changed.
 
+## Stage 0C.1 compatibility experiment
+
+Stage 0C.1 used the separate ignored worktree
+`research/upstream/BLANKthespire-compat` on branch
+`experiment/current-sts2-compat`, based at the same pinned commit. The original
+`research/upstream/BLANKthespire` checkout stayed clean.
+
+The local Steam manifest reports the `public-beta` branch and build ID
+`24724944`. Local `sts2.dll` metadata reports ProductVersion
+`0.1.0+41cef1ea4657c524aa50e870df009e56337e8c32` and assembly version `0.1.0.0`.
+No separate public semantic release number was inferred.
+
+NuGet listed `Alchyr.Sts2.BaseLib` 3.4.5 as the latest stable version at audit
+time, with a NuGet-listed Last Updated date of 2026-08-14 (the page did not expose a separate publication timestamp). The compatibility worktree
+changed only its BaseLib PackageReference from 3.2.1 to 3.4.5 for the first
+experiment. Restore succeeded. The BaseLib-only build still failed with the
+same five override errors and 242 warnings.
+
+Local metadata confirmed these current signatures:
+
+- `CardModel.GetResultLocationForCardPlay()` returns `CardLocation`.
+- `AbstractModel.ModifyCardPlayResultLocation(...)` takes and returns
+  `CardLocation`.
+- `AbstractModel.ModifyDamageAdditive(...)` has a final `CardPlay` parameter.
+- `CardLocation` contains the player, pile type, and pile position.
+- `CardCreationOptions.CustomCardPool` and
+  `AssertUniformOddsIfSingleRarityPool` are absent.
+
+The compatibility worktree applied five direct API migrations, then three clear
+`CreatureCmd.Damage` call-site fixes and one missing namespace import. The final
+worktree diff was 9 files, 23 insertions, and 17 deletions. The final sandboxed
+build exited 1 with 2 errors and 330 warnings:
+
+1. `SingleRarityRewardPoolPatch.cs(35,31)` still references the removed
+   `CardCreationOptions.CustomCardPool`. The old Harmony target is also absent,
+   so a property rename would not preserve behavior.
+2. `BlankTheSpire.cs(13,14)` reports analyzer error `STS001` for four existing
+   character dialogue keys, even though those keys are present in
+   `BlankTheSpire/localization/eng/characters.json`.
+
+The final build produced no DLL, PDB, JSON, or PCK. The sandbox ModsPath remained
+empty. The live mods directory remained unchanged and contained no
+`BlankTheSpire` directory. No STS2 launch, Godot installation, live BaseLib
+installation, save-file change, or game-file change occurred.
+
+Compatibility references:
+
+- <https://packages.nuget.org/packages/Alchyr.Sts2.BaseLib/3.4.5>
+- <https://tutorials.sts2modding.com/docs/07-migration-99-100/>
+- <https://tutorials.sts2modding.com/en/docs/12-hook-trigger-order/>
+
+Exact Stage 0C.1 commands, run from the compatibility worktree's `mod`
+directory:
+
+```powershell
+dotnet restore .\BlankTheSpire.csproj -p:Sts2Path="D:/SteamLibrary/steamapps/common/Slay the Spire 2" -p:ModsPath="C:/Codex/STS2CharacterCreator/research/build-output/blank-mods/"
+dotnet build .\BlankTheSpire.csproj --no-restore -clp:ErrorsOnly -p:Sts2Path="D:/SteamLibrary/steamapps/common/Slay the Spire 2" -p:ModsPath="C:/Codex/STS2CharacterCreator/research/build-output/blank-mods/"
+```
+
+Stage 0D was not started.
+
 ## Remaining blockers
 
-- Find a BLANK commit compatible with the installed STS2 assembly, or defer any
+- Resolve the current `CardCreationOptions` reward-pool contract and replacement
+  patch point, or defer that adaptation to a later explicitly authorized stage.
+- Resolve the `STS001` localization analyzer mismatch without weakening or deleting
+  localization content.
+- Find a BLANK commit compatible with the installed STS2 assembly, or defer broader
   source adaptation to a later explicitly authorized stage.
 - A successful PCK-producing build remains unproven.
 - Godot external executable requirements remain untested because compilation

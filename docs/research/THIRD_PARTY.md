@@ -59,6 +59,36 @@ Research findings:
 - Its runtime contract and fixed slot limits are documented in docs/research/BLANK_RUNTIME.md.
 - Its source was inspected at the pinned commit. No upstream files were modified.
 
+## Local experimental derivative
+
+A compatibility derivative was created for Stage 0C.1 under the same BLANK MIT
+license. It is not part of the parent repository history and was not pushed.
+
+- path: `research/upstream/BLANKthespire-compat`
+- branch: `experiment/current-sts2-compat`
+- base commit: `d29b6c8aeacae7f68685e3e9c3f5d65fa88bdb80`
+- license basis: BLANK MIT License at the pinned base commit
+- tracking: ignored by the parent repository's `research/upstream/` rule
+- original checkout: `research/upstream/BLANKthespire` remained clean
+
+The derivative changed only these local experimental paths:
+
+- `mod/BlankTheSpire.csproj`, BaseLib 3.2.1 to 3.4.5
+- `mod/BlankTheSpireCode/Engine/DataCard.cs`
+- `mod/BlankTheSpireCode/Engine/EffectRunner.cs`
+- `mod/BlankTheSpireCode/Engine/TriggerRunner.cs`
+- `mod/BlankTheSpireCode/Powers/ForgedBalancePower.cs`
+- `mod/BlankTheSpireCode/Powers/ForgedCorruptionPower.cs`
+- `mod/BlankTheSpireCode/Powers/ForgedRelic.cs`
+- `mod/BlankTheSpireCode/Powers/ForgedStatusPower.cs`
+- `mod/BlankTheSpireCode/Powers/SpikeSharpenPower.cs`
+
+The source changes are a local API compatibility experiment. No source was
+copied into this parent repository, no upstream file was modified, and the
+BLANK schema/runtime contract was not adopted as the canonical project format.
+If this derivative is ever distributed, retain the BLANK copyright and MIT
+notices and review any non-BLANK dependencies separately.
+
 ## Candidates
 
 ### BaseLib-StS2
