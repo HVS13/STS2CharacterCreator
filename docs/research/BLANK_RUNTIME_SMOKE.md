@@ -227,3 +227,55 @@ for the runtime smoke test.
 Stage 0D.1 stops here. Do not begin Stage 0D.2 until the BLANK initializer
 failure, the existing duplicate-model conflict, and the save-write risk have
 an explicit next-stage disposition.
+
+## Stage 0D.1.1 non-launching follow-up
+
+Audit date: **2026-08-24**
+
+Stage 0D.1.1 completed the diagnosis and compatibility rebuild without launching
+STS2. No live mod, Workshop, save, or settings file was changed. Stage 0D.2 was
+not started.
+
+### WaitHelper result
+
+The local `sts2.dll` has two public static non-generic `WaitHelper.Until` overloads:
+
+- `Task Until(Func<bool>, CancellationToken, TimeSpan?, Func<string>)`, metadata token `0x0600590A`
+- `Task Until(Func<bool>, CancellationToken, TimeSpan?, string)`, metadata token `0x06005909`
+
+The second overload is the one compatible with BLANK's `string? timeoutMessage`
+prefix parameter. The previous name-only `AccessTools.Method` lookup was
+ambiguous. The compatibility worktree now passes all four parameter types to
+select the string overload deterministically. The patch is recorded in commit
+`7e5996fb2a16723684cb095951e97ba01e73fc69`. Harmony's overload-targeting
+references are recorded in `docs/research/BLANK_COMPATIBILITY.md`.
+
+### Rebuild result
+
+The patched compatibility worktree rebuilt with exit code 0, 330 warnings, and 0
+errors. The DLL, JSON manifest, and PCK were produced under the ignored
+`research/build-output/blank-mods/` directory. This is compile proof only. It is
+not a new runtime proof.
+
+### Isolation result
+
+Read-only inspection of the local assembly found that STS2 checks `nomods` before
+mod discovery. That key skips all mod initialization. For normal mod loading, STS2
+scans local and Workshop sources, applies source-aware `ModSettings` enablement,
+then calls `TryLoadMod`. No per-mod command-line selector was found.
+
+The best available future method is to use the game's built-in per-mod settings to
+disable all Workshop entries while leaving only local official BaseLib v3.4.5 and
+local patched BLANK enabled. This changes `settings.save`, so it requires an exact
+pre-test backup, controlled cloud synchronization, and byte-for-byte restore. The
+full procedure and rejected alternatives are in
+`docs/research/STS2_MOD_ISOLATION.md`. No part of that procedure was performed
+here.
+
+### Follow-up status
+
+The WaitHelper compatibility blocker is resolved in the compatibility worktree.
+The original Stage 0D.1 result remains blocked because the prior launch was not
+isolated from the existing Workshop-heavy mod set and recorded automatic
+`settings.save` activity. A future clean Stage 0D.1 retry requires separate
+authorization and the documented isolation protocol.

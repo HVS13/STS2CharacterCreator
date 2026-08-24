@@ -1,6 +1,6 @@
 # BLANK Compatibility Investigation
 
-Status: **Stage 0C.2 complete as a bounded sandbox build proof**
+Status: **Stage 0D.1.1 complete as a bounded compatibility diagnosis and sandbox rebuild; clean Stage 0D.1 retry pending**
 
 Audit date: **2026-08-24**
 
@@ -354,3 +354,108 @@ BaseLib v3.4.5 loaded from the local mods directory and reported 280 successful 
 The game also reported `DuplicateModelException` for `CARD.TYPHOON`, already mapped to `RyoshuMod.Typhoon` and then requested by `Typhoon`. That error occurred with the existing workshop-heavy mod set and was not isolated from those mods. The runtime log also shows automatic `settings.save` writes and existing RitsuLib workshop update activity.
 
 The local BaseLib and BLANK directories were removed after normal shutdown. The final local-mod inventory matched the pre-smoke baseline. No character, run, import, or BLANK settings/menu interaction occurred. Stage 0D.2 remains stopped pending explicit disposition of the initializer failure, the existing-mod startup conflict, and the save-write risk.
+
+## Stage 0D.1.1 WaitHelper diagnosis and compatibility fix
+
+Audit date: **2026-08-24**
+
+Stage 0D.1.1 was completed as a non-launching diagnosis, minimal compatibility
+patch, and sandbox rebuild. STS2 was not launched during this follow-up. The
+original pinned BLANK checkout remained unchanged. The edit was made only in the
+ignored compatibility worktree.
+
+### BLANK target and previous failure
+
+`AutoSlaySmokeHook.cs` defines a parameterless `[HarmonyPatch]` class,
+`AutoSlayEmbarkTimeoutPatch`. Its `TargetMethod()` previously called the
+name-only lookup:
+
+```csharp
+AccessTools.Method("MegaCrit.Sts2.Core.AutoSlay.Helpers.WaitHelper:Until")
+```
+
+The prefix is:
+
+```csharp
+private static void Prefix(ref TimeSpan? timeout, string? timeoutMessage)
+```
+
+It changes only the AutoSlay timeout whose message is `Room type not assigned`.
+The previous Stage 0D.1 log showed Harmony failing while resolving this target
+with `System.Reflection.AmbiguousMatchException`.
+
+### Local overloads
+
+Metadata inspection of the installed local `sts2.dll` found two public static,
+non-generic `WaitHelper.Until` methods. Both return `Task` and both have four
+parameters:
+
+| Token | Signature | Optional parameters | Body evidence |
+|---|---|---|---|
+| `0x0600590A` | `Task Until(Func<bool> condition, CancellationToken ct, TimeSpan? timeout, Func<string> timeoutMessage)` | none | 79-byte async method body |
+| `0x06005909` | `Task Until(Func<bool> condition, CancellationToken ct, TimeSpan? timeout, string timeoutMessage)` | `timeout = null`, `timeoutMessage = null` | 45-byte wrapper that constructs `Func<string>` and delegates to `0x0600590A` |
+
+`TimeSpan?` is by value in both game methods. BLANK's `ref TimeSpan?` is a
+Harmony prefix injection used to mutate the argument, not a claim that the
+original game method has a by-reference parameter. The prefix's `string?` message
+parameter matches the string overload, not the `Func<string>` overload.
+
+The name-only lookup is therefore ambiguous on the current runtime. The correct
+target is token `0x06005909`, the string overload that the prefix can receive.
+
+Harmony's official documentation states that argument-type arrays are needed to
+select among same-name overloads, and that a `TargetMethod` method can return the
+exact `MethodBase`: [target-method annotations](https://github.com/pardeike/Harmony/wiki/Target-method-annotations), [patching](https://github.com/pardeike/Harmony/wiki/Patching), and the [HarmonyPatch API](https://github.com/pardeike/Harmony/blob/master/docs/api/HarmonyLib.HarmonyPatch.html).
+
+### Minimal fix
+
+The compatibility worktree now uses deterministic parameter matching:
+
+```csharp
+private static MethodBase? TargetMethod() =>
+    AccessTools.Method(
+        "MegaCrit.Sts2.Core.AutoSlay.Helpers.WaitHelper:Until",
+        new[]
+        {
+            typeof(Func<bool>),
+            typeof(CancellationToken),
+            typeof(TimeSpan?),
+            typeof(string)
+        });
+```
+
+No prefix behavior, timeout value, AutoSlay flow, or unrelated patch was changed.
+
+- Compatibility worktree: `research/upstream/BLANKthespire-compat`
+- Branch: `experiment/current-sts2-compat`
+- New commit: `7e5996fb2a16723684cb095951e97ba01e73fc69`
+- Commit message: `fix: target current WaitHelper Until overload`
+- Local Harmony assembly: `0Harmony, Version=2.4.2.0`
+
+### Rebuild proof
+
+The normal build command was run from the compatibility `mod` directory:
+
+```powershell
+dotnet build .\BlankTheSpire.csproj --no-restore -p:Sts2Path="D:/SteamLibrary/steamapps/common/Slay the Spire 2" -p:ModsPath="C:/Codex/STS2CharacterCreator/research/build-output/blank-mods/"
+```
+
+Result: exit code 0, 330 warnings, 0 errors. The rebuilt artifacts were written
+only to the ignored `research/build-output/blank-mods/` directory:
+
+- `BlankTheSpire.dll`, 437,760 bytes, SHA-256 `605219C5CF5A6799FBDCF4C11DB11422E6A989BB4ED7116FE9EABEB32633B4E9`
+- `BlankTheSpire.json`, 296 bytes, SHA-256 `FCB94D79DA8477E48D478134C4EFACBD0478DB7070FBE383E4F0A576A80EA25F`
+- `BlankTheSpire.pck`, 151,805 bytes, SHA-256 `C8F9F834D4AAB213023DBB19EC19EB8F95D3DECA6676B51ABB4B40CCA3D99351`
+
+This proves that the deterministic target compiles against the local runtime. It
+does not prove runtime loading until a future isolated smoke test is authorized.
+
+### Isolation handoff
+
+The local assembly audit found that STS2 applies source-aware `ModSettings` state
+before calling `TryLoadMod`. The only explicit command-line key found was
+`nomods`, which disables every mod and is not suitable for a two-mod test. No
+per-mod CLI selector was found. The recommended future method is documented in
+`docs/research/STS2_MOD_ISOLATION.md`. It requires an explicit settings backup,
+controlled cloud-sync conditions, built-in per-mod disabling, and exact restore.
+No settings or live mod state was changed during this follow-up.

@@ -40,6 +40,8 @@ settings.save synchronization and writes, so the strict no-save-change
 criterion is not proven. The full evidence is in
 docs/research/BLANK_RUNTIME_SMOKE.md. Stage 0D.2 was not started.
 
+Phase 0, Stage 0D.1.1, non-launching WaitHelper diagnosis and compatibility rebuild, is complete as a bounded follow-up. The compatibility worktree commit 7e5996fb2a16723684cb095951e97ba01e73fc69 selects the current string overload deterministically and rebuilds with 0 errors and 330 warnings. The local assembly audit found that `nomods` disables all mods, while source-aware `ModSettings` enablement is applied before mod loading. A clean Stage 0D.1 retry remains pending the isolation procedure in docs/research/STS2_MOD_ISOLATION.md.
+
 No production application code has been started. No application framework has been initialized.
 
 ## Confirmed product requirements
@@ -112,6 +114,8 @@ are recorded in docs/research/BLANK_BUILD.md.
 - Stage 0C documentation checkpoint: d8bb3cf88990a7ce1e6c0758f86f4595c9a8edc4
 - Stage 0C.2 documentation commit: 0a70d9204b34af8f18da33a9425fc144ddabdbb1
 - BLANK compatibility commit: 8ff307d3eae4afbe111d91784b1bcff4f4dfe2af
+- Stage 0D.1 documentation commit: 7fcbf0707559d40ecc3f6dd6acd5abfae92eaadc
+- BLANK WaitHelper compatibility fix commit: 7e5996fb2a16723684cb095951e97ba01e73fc69
 - BLANK checkout: research/upstream/BLANKthespire
 - BLANK commit: d29b6c8aeacae7f68685e3e9c3f5d65fa88bdb80
 - BLANK branch: main
@@ -127,7 +131,7 @@ was audited without modifying game content. The installed .NET SDK is now
 
 ## Immediate work
 
-Stage 0D.1 is blocked after the controlled smoke test. Do not start Stage 0D.2. First review the BLANK initializer overload failure, the existing duplicate-model conflict, and the automatic settings.save and workshop-update activity. Any corrective runtime experiment needs a separately scoped authorization.
+Stage 0D.1 remains blocked after the controlled smoke test. Do not start Stage 0D.2. The WaitHelper overload failure is diagnosed and fixed in the isolated compatibility worktree. A future runtime retry still needs the documented mod-isolation procedure, explicit settings backup and restore, and separate authorization.
 
 ## Known decisions
 
@@ -150,7 +154,7 @@ Stage 0D.1 is blocked after the controlled smoke test. Do not start Stage 0D.2. 
 - exact BaseLib and runtime compatibility requirements for current STS2 versions
 - shape of the eventual canonical project schema
 - whether the fixed-shell limits are sufficient for the intended MVP
-- whether BLANK's AutoSlay timeout patch must select a specific current WaitHelper.Until overload
+- whether the compatibility target remains valid after future STS2 API changes
 - whether the existing workshop CARD.TYPHOON conflict can be separated from BLANK runtime proof
 - whether a safe smoke-test procedure can avoid automatic settings.save writes and workshop updates
 - whether a compatible BLANK commit is preferable to maintaining the committed local experiment
