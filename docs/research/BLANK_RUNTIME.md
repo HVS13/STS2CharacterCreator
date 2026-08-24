@@ -4,9 +4,10 @@ Status: **Complete for Phase 0, Stage 0B local source audit**
 
 Audit date: 2026-08-24
 
-This report records the behavior of the pinned upstream checkout. It does not claim
-that BLANK has been built or run in this repository. No source was copied from the
-checkout, and the checkout itself was not modified.
+This report records the behavior of the pinned upstream checkout. A Stage 0C build
+attempt is documented in docs/research/BLANK_BUILD.md. The attempt did not produce
+a successful build or run. No source was copied from the checkout, and the checkout
+itself was not modified.
 
 ## Upstream and provenance
 
@@ -499,9 +500,8 @@ BLANK proves that a bounded data-driven character runtime is plausible for STS2,
 but it does not prove that an unrestricted visual creator can avoid compiled
 capacity planning. Preserve the fixed-shell finding as an architecture constraint.
 
-Do not copy BLANK source or adopt its JSON as the canonical project format. The
-next proof should be a separate, unchanged BLANK build once the missing .NET 9,
-Godot .NET, and BaseLib prerequisites are explicitly installed or otherwise made
-available. Record the produced DLL, JSON, and PCK, then decide whether the future
-creator should target a similar bounded runtime, generate additional shells, or
-use a different export boundary.
+Do not copy BLANK source or adopt its JSON as the canonical project format. Stage 0C
+attempted the unchanged build with the .NET 9 SDK available, while leaving Godot
+uninstalled and directing ModsPath to a sandbox. The attempt failed during C#
+compilation against the installed STS2 assembly. See docs/research/BLANK_BUILD.md
+for the exact errors and safety verification.

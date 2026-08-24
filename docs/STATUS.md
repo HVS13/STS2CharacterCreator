@@ -10,12 +10,18 @@ Phase 0, Stage 0A, environment audit, is complete. The factual report is in
 docs/research/ENVIRONMENT.md.
 
 Phase 0, Stage 0B, BLANK runtime proof preparation and source audit, is complete.
-The pinned upstream checkout and audit are recorded in
-docs/research/BLANK_RUNTIME.md and docs/research/THIRD_PARTY.md.
+The checkpoint commit is e66e7862848a0b0731e885da3a932f36a277c5f6.
 
-The runtime build proof has not been attempted. Stage 0C has not started.
+Phase 0, Stage 0C, unchanged BLANK build, was attempted and is blocked by an
+external STS2 API compatibility mismatch. The evidence is in
+docs/research/BLANK_BUILD.md.
+
+The .NET 9 SDK is now installed as explicitly authorized. Godot was not installed.
+BaseLib was restored only as a NuGet build dependency and was not installed into
+the live STS2 mods directory.
 
 No production application code has been started. No application framework has been initialized.
+Stage 0D has not started.
 
 ## Confirmed product requirements
 
@@ -55,28 +61,44 @@ d29b6c8aeacae7f68685e3e9c3f5d65fa88bdb80 shows a fixed-shell runtime:
 
 The approach is technically relevant to the project, but it is a constrained runtime contract, not a canonical project schema. It also depends on STS2, BaseLib, Harmony, Godot .NET, and the .NET 9 SDK.
 
+## Stage 0C findings
+
+- NuGet restore succeeded with the local STS2 path and sandbox ModsPath override.
+- The normal build exited 1 with 5 errors and 242 warnings.
+- The five errors are CS0115 override mismatches against the installed sts2.dll API.
+- No DLL, PDB, JSON, or PCK was produced.
+- The live STS2 mods directory was unchanged.
+- The BLANK checkout remained at the pinned commit with a clean tracked working tree.
+- Stage 0D was not started.
+
+The precise errors, warning summary, package versions, commands, and safety inventory
+are recorded in docs/research/BLANK_BUILD.md.
+
 ## Git and upstream baseline
 
-- baseline commit: ed350f410efcbd1892d8aad5b4b793d42b7836
+- initial baseline commit: ed350f410efcbd189292d8aad5b4b793d42b7836
 - baseline message: chore: establish project baseline
+- Stage 0B documentation commit: e66e7862848a0b0731e885da3a932f36a277c5f6
 - BLANK checkout: research/upstream/BLANKthespire
 - BLANK commit: d29b6c8aeacae7f68685e3e9c3f5d65fa88bdb80
 - BLANK branch: main
 - no Git remote is configured for this project
-- the BLANK checkout is ignored and remains clean
+- research/upstream/ and research/build-output/ are ignored
+- the BLANK checkout is clean
 
 ## Stage 0A result
 
-The local Windows, Git, .NET, Steam, STS2, mods, BaseLib, and version environment
-was audited without installing dependencies or modifying game content. No .NET
-SDK was detected, and BaseLib was not detected in the installed STS2 tree.
+The local Windows, Git, Steam, STS2, mods, BaseLib, and version environment
+was audited without modifying game content. The installed .NET SDK is now
+9.0.317. BaseLib remains undetected in the live STS2 mods tree.
 
 ## Immediate work
 
-Next planned action, not started in this task:
+Do not start Stage 0D yet.
 
-obtain or install the missing prerequisites only after explicit authorization, then
-attempt the documented BLANK build unchanged and record the exact result.
+First resolve the compatibility question identified by Stage 0C. The next decision is
+whether to obtain a compatible BLANK and STS2 pair, or to formally defer source
+adaptation until a later authorized stage. Do not patch BLANK as part of this report.
 
 ## Known decisions
 
@@ -87,6 +109,8 @@ attempt the documented BLANK build unchanged and record the exact result.
 - do not build the desktop UI before runtime feasibility is established
 - do not adopt BLANK's runtime contract as the canonical project schema
 - do not modify the pinned upstream checkout
+- do not install BaseLib into the live STS2 mods directory
+- do not install Godot during Stage 0C
 
 ## Known unknowns
 
@@ -96,5 +120,5 @@ attempt the documented BLANK build unchanged and record the exact result.
 - exact BaseLib and runtime compatibility requirements for current STS2 versions
 - shape of the eventual canonical project schema
 - whether the fixed-shell limits are sufficient for the intended MVP
-- whether the documented BLANK build succeeds once prerequisites are available
-
+- whether a compatible BLANK commit exists for the installed STS2 API
+- whether a successful PCK-producing build requires an external Godot executable

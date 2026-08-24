@@ -1,2 +1,5 @@
 # Third-party research checkouts. Keep upstream repositories outside our history.
 research/upstream/
+
+# Sandboxed build artifacts. Keep restore/build output outside project history.
+research/build-output/
