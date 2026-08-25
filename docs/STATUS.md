@@ -185,64 +185,54 @@ Phase 0 experiment unless an implementation blocker requires it.
 - whether a compatible BLANK commit is preferable to maintaining the committed local experiment
 - whether the current local input path can reliably activate a map node and enter combat in the controlled runtime test
 
-## Phase 1 v1 validation checkpoint
+## Phase 1 v1 release-readiness checkpoint
 
-The v1 editor implementation and focused validation are complete as an audit,
-but the release candidate is NOT READY. No STS2 launch, save write, game-file
-write, Workshop change, or runtime deployment occurred during this validation
-pass.
+The v1 desktop application validation is complete as an audit, but the release
+candidate is NOT READY.
 
-Implemented and checked:
+Passed:
 
-- Tauri 2 desktop shell with React, TypeScript, Vite, Zod, and Zustand.
-- Application-owned canonical project model and schema validation.
-- Character, card, upgrade, effect, condition, status, relic, potion,
-  enchantment, stance, orb, and companion editing.
-- Project-local artwork import, relative references, preview reload after
-  reopening a saved folder, and portable archive inclusion.
-- Folder save/open, quiet autosave, portable import/export, undo/redo, search,
-  contextual previews, and semantic controls.
-- Runtime detection, BLANK adapter generation, explicit Play confirmation,
-  reversible deployment backup, launch, and rollback commands.
-- Safe portable import that rejects non-empty destinations without changing them.
-- Character search, collection Delete shortcuts, honest editor-only labels for
-  unsupported basic runtime types, and user-facing game-support wording.
+- Native installed-app golden journey, including close/reopen, artwork preview,
+  undo/redo, and `.sts2char` export/import round trip.
+- NSIS install, launch, uninstall, and preservation of an external user-project
+  marker. NSIS is the supported Windows installer for v1.
+- Bundled runtime setup. The app located STS2 build `24724944`, installed and
+  verified the pinned BaseLib 3.4.5 and patched BLANK files, and required no
+  manual runtime preparation.
+- Local rollback after the controlled Play attempt. All 294 recorded user-data
+  hashes, the forged tree, settings pair, three pre-existing local-mod hashes,
+  and all 53 Workshop directory inventories matched baseline. BaseLib and
+  BlankTheSpire were removed and STS2 remained stopped.
 
-Validation evidence:
+MSI is not release-blocking for v1. Non-elevated MSI installation returned
+Windows Installer error 1925 on this host. An elevated control completed. The
+host/admin-context dependency is documented, and MSI is not the recommended
+v1 path.
 
-- Browser editor journey passed for project/card naming, cost 1, base damage
-  11, upgrade damage 15, save, search, duplicate, rename, Delete, Ctrl+S,
-  Ctrl+Z, Ctrl+Y, unsupported-state labeling, and detection messaging.
-- Narrow 800x600 browser layout retained semantic controls.
-- npm run typecheck passed.
-- npm run test passed, 3 tests.
-- npm run build passed.
-- cargo check --manifest-path src-tauri/Cargo.toml passed.
-- cargo test --manifest-path src-tauri/Cargo.toml --lib passed, 2 tests.
-- npm run tauri build passed. Fresh MSI and NSIS bundles were produced.
-- The native executable launched and responded from the release output.
-- NSIS install, launch, and uninstall passed in an isolated directory. An
-  external user-project marker survived uninstall.
-- MSI validation is blocked on this host because four bounded silent msiexec
-  attempts hung before producing a log or installed files, including retries
-  with the Windows Installer service running. NSIS install, launch, and
-  uninstall passed in an isolated directory, and an external user-project
-  marker survived uninstall.
-- Play is blocked before launch because the compatible local BaseLib runtime is
-  undetected. The application reports Play setup required. No dependency was
-  installed.
+The single controlled Play proof is not passed. The app validated the project,
+generated and deployed runtime data, created a backup, and launched STS2 through
+Steam. The runtime log reported BaseLib and BLANK initialization and a forged
+class/card load, but the visible character-selection screen showed `BLANK the
+spire`, not `QA Character`. No combat or 11-damage result was claimed, and Play
+artwork was not claimed.
 
-Current limits:
+A confirmed adapter defect was found after the run: BLANK expects
+`starting_deck` entries with `slot`, while the adapter emitted `card`. The
+minimal correction is in `src/lib/runtimeAdapter.ts`. It was not retested in
+STS2 because the one-shot Play proof was already used. The exact causal link to
+the visual mismatch remains unproven.
 
-- The full native dialog-driven golden journey is not yet proven in this
-  environment, including native folder/file selection, portable export/import,
-  close/reopen, and visible artwork confirmation.
-- Full manual accessibility modes remain outstanding for forced colors, reduced
-  motion, dark mode, and 200% scaling.
-- MSI installation needs retesting on a supported Windows Installer context.
-- Play and rollback need one controlled application-driven run after the
-  compatible runtime is deliberately installed. The Phase 0 runtime proofs
-  remain the runtime authority.
-- Standalone source/mod export, migrations, recent-project metadata, broad
-  import adapters, cross-platform packaging, and full artwork packaging for
-  every runtime path remain incomplete.
+Local Steam Cloud rollback is not deterministic. The local restored modded
+progress file is 811 bytes with SHA-256
+`C7E80BF9B220BC2828AEB8E8BBFEEAA4E421C2EA7B51D106249A71184CA0BE23`, while
+Steam's remote cache retains a 1,415-byte file with SHA-256
+`29154828477516ACF33922601575440D3F12F5224D77BF2898CA2AD705FC6219`. No
+further overwrite was attempted.
+
+Remaining v1 blockers:
+
+- prove Play with the corrected adapter and a deterministic runtime data path;
+- define a safe Steam Cloud rollback policy that does not leave test-generated
+  remote progress state;
+
+Do not start v2 or expand the runtime scope until these blockers are resolved.

@@ -73,6 +73,11 @@ export async function detectRuntime(): Promise<RuntimeStatus> {
   return invoke<RuntimeStatus>('detect_runtime');
 }
 
+export async function setupRuntime(): Promise<RuntimeStatus> {
+  if (!isTauri()) throw new Error('Runtime setup is available in the desktop app.');
+  return invoke<RuntimeStatus>('setup_runtime');
+}
+
 export async function prepareRuntime(projectRoot: string, files: Record<string, string>): Promise<{ staging_path: string; files_written: number }> {
   if (!isTauri()) return { staging_path: 'browser-preview', files_written: Object.keys(files).length };
   return invoke('prepare_runtime', { projectRoot, files });

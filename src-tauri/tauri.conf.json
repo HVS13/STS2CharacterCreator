@@ -28,6 +28,7 @@
   "bundle": {
     "active": true,
     "targets": "all",
+    "resources": ["resources/runtime/THIRD_PARTY_NOTICES.txt"],
     "icon": ["icons/icon.ico"]
   }
 }

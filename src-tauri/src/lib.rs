@@ -7,9 +7,28 @@ use std::io::{Read, Write};
 use std::path::{Component, Path, PathBuf};
 use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
+use tauri::AppHandle;
 use zip::write::SimpleFileOptions;
 use zip::{ZipArchive, ZipWriter};
 
+const PROVEN_STS2_BUILD_ID: &str = "24724944";
+
+struct BundledRuntimeFile {
+    name: &'static str,
+    bytes: &'static [u8],
+}
+
+const BASE_LIB_FILES: [BundledRuntimeFile; 3] = [
+    BundledRuntimeFile { name: "BaseLib.dll", bytes: include_bytes!("../resources/runtime/BaseLib/BaseLib.dll") },
+    BundledRuntimeFile { name: "BaseLib.json", bytes: include_bytes!("../resources/runtime/BaseLib/BaseLib.json") },
+    BundledRuntimeFile { name: "BaseLib.pck", bytes: include_bytes!("../resources/runtime/BaseLib/BaseLib.pck") },
+];
+
+const BLANK_FILES: [BundledRuntimeFile; 3] = [
+    BundledRuntimeFile { name: "BlankTheSpire.dll", bytes: include_bytes!("../resources/runtime/BlankTheSpire/BlankTheSpire.dll") },
+    BundledRuntimeFile { name: "BlankTheSpire.json", bytes: include_bytes!("../resources/runtime/BlankTheSpire/BlankTheSpire.json") },
+    BundledRuntimeFile { name: "BlankTheSpire.pck", bytes: include_bytes!("../resources/runtime/BlankTheSpire/BlankTheSpire.pck") },
+];
 #[derive(Serialize)]
 struct RuntimeStatus {
     game_found: bool,
@@ -125,6 +144,25 @@ fn find_game_path() -> Option<PathBuf> {
         .find(|path| path.join("SlayTheSpire2.exe").is_file())
 }
 
+fn runtime_component_verified(path: &Path, files: &[BundledRuntimeFile]) -> bool {
+    files.iter().all(|file| fs::read(path.join(file.name)).map(|bytes| bytes == file.bytes).unwrap_or(false))
+}
+
+fn runtime_status(game: Option<&Path>) -> RuntimeStatus {
+    let game_path = game.map(path_to_string);
+    let mods = game.map(|path| path.join("mods"));
+    let mods_path = mods.as_ref().map(|path| path_to_string(path));
+    let base_lib_found = mods.as_ref().map(|path| runtime_component_verified(&path.join("BaseLib"), &BASE_LIB_FILES)).unwrap_or(false);
+    let blank_found = mods.as_ref().map(|path| runtime_component_verified(&path.join("BlankTheSpire"), &BLANK_FILES)).unwrap_or(false);
+    let game_version = game.and_then(read_build_id);
+    let message = match game {
+        Some(path) if game_version.as_deref() == Some(PROVEN_STS2_BUILD_ID) && base_lib_found && blank_found =>
+            format!("Slay the Spire 2 found at {}. Runtime files are verified.", path_to_string(path)),
+        Some(path) => format!("Slay the Spire 2 found at {}.", path_to_string(path)),
+        None => "Slay the Spire 2 was not found in the detected Steam libraries.".to_string(),
+    };
+    RuntimeStatus { game_found: game.is_some(), game_path, mods_path, base_lib_found, blank_found, game_version, message }
+}
 fn read_build_id(game_path: &Path) -> Option<String> {
     let manifest = game_path.parent()?.parent()?.join("appmanifest_2868840.acf");
     let text = fs::read_to_string(manifest).ok()?;
@@ -135,28 +173,38 @@ fn read_build_id(game_path: &Path) -> Option<String> {
 
 #[tauri::command]
 fn detect_runtime() -> RuntimeStatus {
-    let game = find_game_path();
-    let game_path = game.as_ref().map(|path| path_to_string(path));
-    let mods = game.as_ref().map(|path| path.join("mods"));
-    let mods_path = mods.as_ref().map(|path| path_to_string(path));
-    let base_lib_found = mods.as_ref().map(|path| path.join("BaseLib").exists()).unwrap_or(false);
-    let blank_found = mods.as_ref().map(|path| path.join("BlankTheSpire").exists()).unwrap_or(false);
-    let game_version = game.as_ref().and_then(|path| read_build_id(path));
-    let message = match game.as_ref() {
-        Some(path) => format!("Slay the Spire 2 found at {}.", path_to_string(path)),
-        None => "Slay the Spire 2 was not found in the detected Steam libraries.".to_string(),
-    };
-    RuntimeStatus {
-        game_found: game.is_some(),
-        game_path,
-        mods_path,
-        base_lib_found,
-        blank_found,
-        game_version,
-        message,
-    }
+    runtime_status(find_game_path().as_deref())
 }
 
+fn install_runtime_component(path: &Path, files: &[BundledRuntimeFile]) -> Result<(), String> {
+    fs::create_dir_all(path).map_err(|error| error.to_string())?;
+    for file in files {
+        let output = path.join(file.name);
+        let matches = fs::read(&output).map(|bytes| bytes == file.bytes).unwrap_or(false);
+        if !matches {
+            fs::write(output, file.bytes).map_err(|error| error.to_string())?;
+        }
+    }
+    Ok(())
+}
+
+#[tauri::command]
+fn setup_runtime(_app: AppHandle) -> Result<RuntimeStatus, String> {
+    let game = find_game_path().ok_or_else(|| "Slay the Spire 2 was not found in the detected Steam libraries.".to_string())?;
+    let build_id = read_build_id(&game).ok_or_else(|| "The installed STS2 build could not be verified.".to_string())?;
+    if build_id != PROVEN_STS2_BUILD_ID {
+        return Err(format!("The installed STS2 build ({build_id}) is not the proven compatible build ({PROVEN_STS2_BUILD_ID})."));
+    }
+    let mods = game.join("mods");
+    fs::create_dir_all(&mods).map_err(|error| error.to_string())?;
+    install_runtime_component(&mods.join("BaseLib"), &BASE_LIB_FILES)?;
+    install_runtime_component(&mods.join("BlankTheSpire"), &BLANK_FILES)?;
+    let status = runtime_status(Some(&game));
+    if !status.base_lib_found || !status.blank_found {
+        return Err("Runtime setup finished without verifying all required files.".to_string());
+    }
+    Ok(status)
+}
 #[tauri::command]
 fn read_project_file(root_path: String) -> Result<String, String> {
     let project_path = PathBuf::from(root_path).join("project.json");
@@ -368,6 +416,7 @@ pub fn run() {
         .plugin(tauri_plugin_dialog::init())
         .invoke_handler(tauri::generate_handler![
             detect_runtime,
+            setup_runtime,
             read_project_file,
             write_project_file,
             copy_asset,

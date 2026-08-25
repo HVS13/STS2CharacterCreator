@@ -1,118 +1,126 @@
+# V1 Validation and Fix
 
-# v1 Validation and Fix
-
-Status: Complete with release blockers
+Status: Complete with remaining Play and Steam Cloud rollback blockers
 Date: 2026-08-25
 
 ## Outcome
 
-The v1 editor and data paths passed the focused validation checks. The release
-candidate is NOT READY because MSI installation did not complete on this host,
-the full native dialog-driven golden journey was not completed, and Play cannot
-be tested without the compatible local STS2 runtime. No STS2 launch, save write,
-game-file write, Workshop change, or runtime deployment was made in this
-validation pass.
+The native editor journey, NSIS installer, and bundled runtime setup are
+proven. The release candidate remains NOT READY. The single controlled Play
+attempt launched STS2, but character selection showed `BLANK the spire` instead
+of `QA Character`. No combat or card-damage proof was claimed. The local
+filesystem rollback was exact and stable, but Steam Cloud retained a
+post-test modded progress file, so remote rollback is not deterministic.
 
 ## Scope and safety
 
-- Validated the existing Vite editor path with the Playwright CLI.
-- Built the desktop executable and both Windows installers.
-- Exercised native archive helpers with focused Rust tests.
-- Used only ignored temporary paths under research/build-output/v1-validation.
-- Did not install or download BaseLib, BLANK, KitLib, or any other runtime.
-- Did not modify STS2 saves, game files, Workshop content, or unrelated mods.
+- Used the installed Windows desktop application, not browser/dev mode, for
+  the native journey and Play attempt.
+- Used only the pinned BaseLib 3.4.5 and BLANK compatibility artifacts from
+  Phase 0.
+- Enabled only the temporary BaseLib and patched BLANK runtime during Play.
+- Did not change BLANK source, game installation files, Workshop content, or
+  unrelated installed mods.
+- Closed STS2 after the failed character-selection proof and stopped without
+  retrying the controlled Play experiment.
 
 ## Findings
 
-### P0
+### Installer
 
-None.
+- Direct release EXE launched and responded.
+- NSIS installed successfully into an isolated directory, launched, and the
+  existing uninstall check preserved an external user-project marker.
+- MSI returned Windows Installer error 1925 in a non-elevated bounded test.
+  An elevated control completed. MSI is host/admin-context dependent and is
+  not the supported v1 distribution path.
 
-### P1
+### Native golden journey
 
-- MSI installation is blocked on this host. Four isolated silent attempts,
-  including attempts with verbose logging and the Windows Installer service
-  running, left msiexec.exe clients hung before producing a log or files. The
-  temporary clients were stopped. NSIS passed separately.
-- The complete native golden journey is not proven. The browser path passed
-  editor interaction, but native folder/file dialogs were not completed in
-  this environment. The native path therefore still needs a manual run for
-  open/save, PNG selection, portable export/import, close/reopen, and artwork
-  preview confirmation.
-- Play is blocked before launch. The live environment audit reports BaseLib
-  undetected. The application’s user-facing detection state is Play setup
-  required. No dependency was installed and no STS2 launch was attempted.
+PASS. The installed app completed New Project, QA Character, QA Strike, cost
+1, base damage 11, upgrade damage 15, native PNG selection and preview, save,
+close/reopen, edit, undo, redo, `.sts2char` export, import into a different
+empty directory, reopen, and data/artwork confirmation.
 
-### P2
+### Runtime setup
 
-- The Vite development page requests /favicon.ico, which returns 404. This is
-  non-fatal and is not part of the packaged desktop path.
-- A full manual pass for forced colors, reduced motion, dark mode, and 200%
-  scaling remains outstanding. Semantic labels, keyboard shortcuts, focusable
-  controls, and the narrow 800x600 layout were checked.
+PASS. The Settings Runtime control located STS2, verified build `24724944`,
+installed the six pinned runtime files, and verified their exact SHA-256 bytes.
+Repeating setup is idempotent. No manual BaseLib or BLANK preparation was
+required by the user.
+
+### Play
+
+FAIL. The app performed validation, runtime generation, deployment backup,
+temporary forged-data deployment, and Steam launch. The current STS2 log
+reported BaseLib initialization, BLANK initialization, and a forged runtime
+class/card load, but the visual character-selection result was `BLANK the
+spire`, not `QA Character`. The required manual character proof therefore
+failed before combat. QA artwork in Play was not claimed.
+
+A source audit after the run found one confirmed adapter defect: BLANK expects
+`starting_deck` entries with `slot`, while the app emitted `card`. The minimal
+field correction is now in `src/lib/runtimeAdapter.ts`. The correction was not
+retested in STS2 because the authorized one-shot Play proof had already been
+used. Its causal relationship to the visual mismatch is not proven.
+
+### Rollback
+
+Local rollback PASS. After closing STS2:
+
+- all 294 recorded user-data files matched baseline hashes, with no missing,
+  extra, or changed files;
+- the forged tree was restored to the pre-run `cards` directory only;
+- the two settings hashes matched exactly:
+  - `settings.save`: `2C79C018F26BCDF2A5A32018F1698CC7B872204CDDBCBF90A5B48938C9ECA12E`
+  - `settings.save.backup`: `295448A054A30CB2D6F56AEC02EA54760799B16908A2AD713E325A0D4A2DC8EE`
+- the three pre-existing local-mod file hashes matched;
+- BaseLib and BlankTheSpire were absent after cleanup;
+- all 53 Workshop directories matched by ID, file count, and byte count;
+- STS2 remained stopped across two checks ten seconds apart.
+
+Steam Cloud is not restored deterministically. Its local remote cache still
+contains `modded/profile1/saves/progress.save` at 1,415 bytes with SHA-256
+`29154828477516ACF33922601575440D3F12F5224D77BF2898CA2AD705FC6219`, while
+the restored local baseline is 811 bytes with SHA-256
+`C7E80BF9B220BC2828AEB8E8BBFEEAA4E421C2EA7B51D106249A71184CA0BE23`. No
+further overwrite was attempted.
 
 ## Fixes applied
 
-- Portable import now rejects a non-empty destination without changing it.
-- Added native tests for the empty-destination rule and Unicode/space-preserving
-  archive round trips.
-- Added saved-artwork preview reload after reopening a project folder.
-- Added the character to global search.
-- Extended the Delete shortcut to cards, relics, statuses, and basic editable
-  collections.
-- Marked potion, enchantment, stance, orb, and companion editors as
-  Editor preview only and not yet playable or exportable.
-- Removed BaseLib and BLANK names from the normal Settings status display.
-- Added representative runtime-adapter assertions for character, card, upgrade,
-  condition, status, and relic output.
+- Bundled the exact proven BaseLib and patched BLANK runtime files with
+  third-party notices.
+- Added idempotent setup, build-ID verification, and exact runtime hash
+  verification.
+- Added normal-user Runtime status and setup controls without exposing
+  implementation names in the normal UI.
+- Corrected the runtime adapter's BLANK starting-deck field from `card` to
+  `slot`.
 
 ## Validation evidence
 
-- Browser golden editor path: passed for project/card naming, cost 1, base
-  damage 11, upgrade damage 15, save, search, duplicate, rename, Delete,
-  Ctrl+S, Ctrl+Z, Ctrl+Y, and detection messaging.
-- Search result set includes character, cards, relics, statuses, and the basic
-  editable collections.
-- Unsupported collection warning is visible in the normal editor.
-- Narrow 800x600 browser snapshot completed without missing semantic controls.
-- npm run typecheck: passed.
-- npm run build: passed.
-- npm run test: passed, 3 tests.
-- cargo test --manifest-path src-tauri/Cargo.toml --lib: passed, 2 tests.
-- cargo check --manifest-path src-tauri/Cargo.toml: passed.
-- npm run tauri build: passed. Fresh MSI and NSIS bundles were produced.
-- The temporary PNG is research/build-output/0e/test-project/assets/runtime-strike.png.
-  SHA-256: 3410999A1FEC30015335ADBFAB3B656AA44FE0011C08559B1EE7F66CFD946907.
-- The isolated QA project JSON SHA-256 is
-  B8585D7EF28340982EFF4909F175DCABD2224A8CC3B01CB63073DAE6CA4C5CD6.
-- NSIS silent install, launch, and uninstall passed in an isolated directory.
-  An external user-project marker survived uninstall.
-- MSI validation was blocked by the Windows Installer hang described above.
-- The application executable launched and responded from the freshly built
-  release output. STS2 was not launched.
+- `npm run typecheck`: passed.
+- `npm run test`: passed, 3 tests.
+- `cargo check --manifest-path src-tauri/Cargo.toml`: passed.
+- `cargo test --manifest-path src-tauri/Cargo.toml`: passed, 2 tests.
+- `npm run build`: passed.
+- `npm run tauri build`: passed.
+- Native screenshots and isolated installer/runtime artifacts are under the
+  ignored `research/build-output/v1-validation` and `research/build-output/v1-release-check`
+  directories.
 
 ## Validation state
 
-- Installer validation: NSIS passed; MSI blocked by host installer behavior.
-- Golden user journey: partial, browser editor path passed; native file-dialog
-  path remains unproven.
-- Portable project integrity: native helper tests passed.
-- Project safety: code review passed for malformed JSON handling, validation
-  errors, stable IDs, reference errors, autosave, and non-empty import
-  protection. Full native interaction remains pending.
-- UI/UX review: partial, semantic editor path and narrow layout passed.
-- Keyboard/accessibility: partial, Ctrl+S/Z/Y/K/F, Delete, labels, and focusable
-  controls passed; full modality pass remains pending.
-- Search coverage: passed for the required major editable entity groups.
-- Runtime adapter: passed for the representative proven contract.
-- Play and rollback: blocked before launch because the compatible local runtime
-  is absent. No rollback was needed and no live data changed.
+- Installer: NSIS supported; MSI is optional and requires an elevated,
+  host-dependent Windows Installer context.
+- Native golden journey: PASS.
+- Runtime setup: PASS.
+- Play: FAIL, because QA Character was not visible in character selection.
+- Rollback: local filesystem PASS; deterministic Steam Cloud rollback FAIL.
 - Release candidate: NOT READY.
 
 ## Completion decision
 
-The validation audit is complete, but the release candidate is blocked. Before
-calling v1 ready, complete the native dialog-driven journey, resolve or retest
-MSI installation on a supported Windows Installer context, and run Play through
-the application only after the compatible runtime is deliberately installed
-under the existing isolated rollback procedure.
+Do not call v1 ready. Resolve the Play data-path/serialization mismatch and
+establish a rollback policy that does not leave Steam Cloud with test-generated
+state. Do not repeat the Play experiment in this task.

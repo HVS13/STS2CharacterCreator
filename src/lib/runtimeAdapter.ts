@@ -57,7 +57,7 @@ export function buildRuntimeBundle(project: Project): RuntimeBundle {
     description: project.character.description,
     max_hp: project.character.maxHp,
     max_energy: project.character.maxEnergy,
-    starting_deck: project.character.startingDeck.map((entry) => ({ card: Math.max(1, project.cards.findIndex((card) => card.id === entry.cardId) + 1), count: entry.count })),
+    starting_deck: project.character.startingDeck.map((entry) => ({ slot: Math.max(1, project.cards.findIndex((card) => card.id === entry.cardId) + 1), count: entry.count })),
     status_pool: project.mechanics.statuses.slice(0, 4).map((status) => ({
       name: status.name,
       emoji: status.emoji,

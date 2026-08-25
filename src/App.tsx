@@ -21,6 +21,7 @@ import {
   loadProjectFolder,
   prepareRuntime,
   rollbackRuntime,
+  setupRuntime,
   saveProjectFolder,
 } from './lib/tauri';
 import { Sidebar } from './components/Sidebar';
@@ -374,6 +375,17 @@ function App() {
     }
   };
 
+  const runSetup = async () => {
+    setWorking(true);
+    try {
+      setRuntime(await setupRuntime());
+      announce('Runtime is ready.');
+    } catch (error) {
+      announce('Runtime setup failed: ' + (error instanceof Error ? error.message : String(error)));
+    } finally {
+      setWorking(false);
+    }
+  };
   const openPlay = () => {
     if (errors.length) {
       select('settings');
@@ -387,8 +399,8 @@ function App() {
 
   const runPlay = async () => {
     if (!playAcknowledged) return;
-    if (!runtime?.game_found) {
-      announce('Detect a local STS2 installation before Play.');
+    if (!runtime?.game_found || !runtime.base_lib_found || !runtime.blank_found) {
+      announce('Set up Runtime before Play.');
       return;
     }
     setWorking(true);
@@ -485,7 +497,7 @@ function App() {
     if (selectedSection === 'artwork') return <ArtworkEditor project={project} selectedId={selectedId} previews={artworkPreviews} onSelect={(id) => select('artwork', id)} onChoose={() => void chooseArtworkFor('other')} onChange={updateArtwork} onDelete={deleteArtwork} />;
     if (selectedSection === 'lore') return <LoreEditor project={project} selectedId={selectedId} onSelect={(id) => select('lore', id)} onChange={updateLore} onAdd={addLore} onDelete={deleteLore} />;
     if (selectedSection === 'localization') return <LocalizationEditor project={project} locale={locale} setLocale={setLocale} onChange={updateLocale} />;
-    return <SettingsEditor project={project} issues={issues} runtime={runtime} onChange={updateProject} onDetect={() => void detect()} onNew={newLocalProject} onSave={() => void saveCurrent()} onOpen={() => void openFolder()} onExport={() => void exportArchive()} onImport={() => void importArchive()} onPlay={openPlay} />;
+    return <SettingsEditor project={project} issues={issues} runtime={runtime} onChange={updateProject} onSetup={() => void runSetup()} working={working} onDetect={() => void detect()} onNew={newLocalProject} onSave={() => void saveCurrent()} onOpen={() => void openFolder()} onExport={() => void exportArchive()} onImport={() => void importArchive()} onPlay={openPlay} />;
   };
   return (
     <div className="app-shell">
