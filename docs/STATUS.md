@@ -50,6 +50,18 @@ Phase 0, Stage 0D.2B, controlled runtime combat proof, passed on 2026-08-25 unde
 
 Phase 0, Stage 0E and Stage 0E.1, minimal project-local artwork proofs, passed on 2026-08-25. Stage 0E proved one absolute local PNG can be loaded through Godot `ImageTexture` resource takeover. Stage 0E.1 proved that `assets/runtime-strike.png` remains usable after moving the project and removing the original location. Runtime Strike visibly displayed the custom artwork with no network access. The two-file relative-path compatibility patch built a DLL and PCK with 0 errors. The full rollback restored all 294 user-data hashes, settings stability, the pre-existing local mod, and the 53-directory Workshop inventory. Evidence is in docs/research/BLANK_LOCAL_ART.md.
 
+Phase 0, Stage 0F, minimal runtime breadth proof, passed on 2026-08-25. The
+isolated Runtime Test proved a normal card upgrade, a custom additive status, a
+turn-based conditional effect, and a once-per-combat relic trigger. Runtime
+Upgrade displayed 12 damage after Runtime Smith and dealt 12 damage. Runtime
+Power showed 2 stacks and increased a later upgraded attack from 12 to 14.
+Runtime Conditional dealt 0 damage on turn 1 and 12 damage on turn 2. Runtime
+Relic granted 3 Block at combat start. The existing BLANK compatibility DLL and
+PCK were reused, with no Stage 0F source change. The full rollback restored all
+294 user-data hashes, the forged data, the pre-existing local mod, settings,
+and the 53-directory Workshop inventory. Evidence is in
+docs/research/BLANK_BREADTH_PROOF.md.
+
 No production application code has been started. No application framework has been initialized.
 
 ## Confirmed product requirements
@@ -140,7 +152,9 @@ was audited without modifying game content. The installed .NET SDK is now
 
 ## Immediate work
 
-Stage 0D.1.2, Stage 0D.2A, Stage 0D.2B, Stage 0E, and Stage 0E.1 are complete. Stage 0E.1 proved one relative project-local PNG remains displayable by a data-defined card after the project is moved, and completed the verified rollback. Do not start Stage 0F from this task.
+Stage 0D.1.2, Stage 0D.2A, Stage 0D.2B, Stage 0E, Stage 0E.1, and Stage 0F
+are complete. Stage 0F established the minimum runtime breadth proof. Do not
+start Stage 0G from this task.
 
 ## Known decisions
 
