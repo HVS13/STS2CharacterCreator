@@ -64,7 +64,7 @@ PCK were reused, with no Stage 0F source change. The full rollback restored all
 and the 53-directory Workshop inventory. Evidence is in
 docs/research/BLANK_BREADTH_PROOF.md.
 
-No production application code has been started. No application framework has been initialized.
+The v1 desktop application scaffold and initial editor implementation are now present. The application framework is initialized. No STS2 save, game, or Workshop content was modified during this implementation slice.
 
 ## Confirmed product requirements
 
@@ -184,3 +184,44 @@ Phase 0 experiment unless an implementation blocker requires it.
 - whether remote Steam Cloud state and subscription state can be independently verified from local inspection
 - whether a compatible BLANK commit is preferable to maintaining the committed local experiment
 - whether the current local input path can reliably activate a map node and enter combat in the controlled runtime test
+
+## Phase 1 v1 implementation checkpoint
+
+The initial desktop editor slice is implemented under the active plan
+docs/plans/active/001-build-v1.md.
+
+Implemented:
+
+- Tauri 2 desktop shell with React, TypeScript, Vite, Zod, and Zustand.
+- Application-owned canonical project model and schema validation.
+- Character, card, upgrade, effect, condition, status, relic, potion,
+  enchantment, stance, orb, and companion editing.
+- Project-local artwork import with native file selection, relative paths,
+  previews, replacement workflow, and portable archive inclusion.
+- Dialogue/lore and localization editing.
+- Folder save/open, quiet autosave after a saved project exists, portable
+  archive import/export, undo/redo, search/command palette, empty states,
+  contextual previews, and responsive semantic controls.
+- Runtime detection, BLANK adapter generation, explicit Play confirmation,
+  reversible deployment backup, launch, and rollback commands.
+
+Verification completed:
+
+- npm run typecheck: passed.
+- npm run build: passed.
+- npm run test: passed, 2 tests.
+- cargo check --manifest-path src-tauri/Cargo.toml: passed.
+- npm run tauri build: passed. MSI and NSIS installers were produced under src-tauri/target/release/bundle/.
+
+Current limits:
+
+- The desktop GUI has not yet undergone a full manual accessibility or
+  usability pass.
+- Play has not been launched from the new application. The existing Phase 0
+  runtime evidence remains the runtime authority.
+- Runtime mapping is currently limited to the proven BLANK character/card
+  contract. Other editor collections are canonical data but are not yet
+  emitted as independently proven runtime models.
+- Standalone source/mod export, migrations, recent-project metadata, broad
+  import adapters, cross-platform packaging, and full artwork packaging for
+  every runtime path remain incomplete.
