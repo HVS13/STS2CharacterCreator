@@ -45,6 +45,17 @@ Phase 0, Stage 0D.1.1, non-launching WaitHelper diagnosis and compatibility rebu
 Phase 0, Stage 0D.1.2, clean isolated BLANK runtime smoke-test retry, is complete as a bounded runtime proof. The game’s own settings serializer round-tripped a copy byte-for-byte, and a semantic diff proved that the temporary live edit changed only SettingsSave.ModSettings.ModList. A normal Steam launch loaded exactly local BaseLib v3.4.5 and patched BLANK, reached the main menu, and reported no WaitHelper or DuplicateModelException failure. STS2 did rotate the settings files and logged a cloud-save overwrite during startup, but both settings files, local mods, Workshop directory inventory, and BLANK-generated runtime artifacts were restored or verified after shutdown. At that checkpoint, Stage 0D.2 was not started.
 
 Phase 0, Stage 0D.2A, minimal local data-defined character discovery proof, is complete. A source-derived `Runtime Test` class and one `runtime_test_strike` starter card were written to BLANK’s local class-slot paths, validated by the helper preflight, and accepted by BLANK’s definitive startup loaders. The isolated run loaded only local BaseLib v3.4.5 and patched BLANK, discovered the class and card, and reached the main menu without a run or combat. The forged tree, settings pair, temporary mods, BLANK cache files, and Workshop inventory were restored or verified. Direct character-select visuals were not captured. Automatic writes to existing modded profile/progress/preferences data and Steam Cloud remain a safety risk, as in Stage 0D.1.2. Evidence is in docs/research/BLANK_CHARACTER_PROOF.md.
+
+Phase 0, Stage 0D.2B, controlled runtime combat proof, was attempted on
+2026-08-25 under explicit authorization for a normal Steam launch and temporary
+user-data writes. BaseLib 3.4.5 and the patched BLANK build loaded, `Runtime Test`
+was visibly selected, and one run reached the map. The first reachable combat
+node did not open combat after bounded input attempts, so `Runtime Strike` was
+not played and 11 damage was not proven. The game was closed and the full
+verified rollback passed: all 294 user-data hashes, all 3 pre-existing local-mod
+hashes, and all 53 Workshop directory IDs matched the baseline. Evidence is in
+docs/research/BLANK_COMBAT_PROOF.md. Stage 0D.2B is blocked before combat.
+
 No production application code has been started. No application framework has been initialized.
 
 ## Confirmed product requirements
@@ -135,7 +146,15 @@ was audited without modifying game content. The installed .NET SDK is now
 
 ## Immediate work
 
-Stage 0D.1.2 and Stage 0D.2A are complete. Do not start Stage 0D.2B until the character-select visual limitation and automatic save-write risk have an explicit disposition. The local discovery proof passed, exact forged/settings rollback passed, and remote Steam Cloud and subscription state remain outside direct local verification.
+Stage 0D.1.2 and Stage 0D.2A are complete. Stage 0D.2B is blocked before combat
+because the first reachable map node did not transition into an encounter
+through the bounded local input path. The local character/card discovery proof
+passed, the controlled run reached the map, and the full rollback passed.
+Remote Steam Cloud state and subscription state remain outside direct local
+verification, although the local settings and progress hashes remained stable
+after a delayed post-rollback check. Do not repeat the Steam launch
+automatically. A follow-up should first choose a reliable, user-controlled map
+entry method and remain limited to one combat proof.
 
 ## Known decisions
 
@@ -162,3 +181,4 @@ Stage 0D.1.2 and Stage 0D.2A are complete. Do not start Stage 0D.2B until the ch
 - whether the existing workshop CARD.TYPHOON conflict can be separated from BLANK runtime proof
 - whether remote Steam Cloud state and subscription state can be independently verified from local inspection
 - whether a compatible BLANK commit is preferable to maintaining the committed local experiment
+- whether the current local input path can reliably activate a map node and enter combat in the controlled runtime test
