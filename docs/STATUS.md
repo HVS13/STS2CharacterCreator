@@ -185,43 +185,64 @@ Phase 0 experiment unless an implementation blocker requires it.
 - whether a compatible BLANK commit is preferable to maintaining the committed local experiment
 - whether the current local input path can reliably activate a map node and enter combat in the controlled runtime test
 
-## Phase 1 v1 implementation checkpoint
+## Phase 1 v1 validation checkpoint
 
-The initial desktop editor slice is implemented under the active plan
-docs/plans/active/001-build-v1.md.
+The v1 editor implementation and focused validation are complete as an audit,
+but the release candidate is NOT READY. No STS2 launch, save write, game-file
+write, Workshop change, or runtime deployment occurred during this validation
+pass.
 
-Implemented:
+Implemented and checked:
 
 - Tauri 2 desktop shell with React, TypeScript, Vite, Zod, and Zustand.
 - Application-owned canonical project model and schema validation.
 - Character, card, upgrade, effect, condition, status, relic, potion,
   enchantment, stance, orb, and companion editing.
-- Project-local artwork import with native file selection, relative paths,
-  previews, replacement workflow, and portable archive inclusion.
-- Dialogue/lore and localization editing.
-- Folder save/open, quiet autosave after a saved project exists, portable
-  archive import/export, undo/redo, search/command palette, empty states,
-  contextual previews, and responsive semantic controls.
+- Project-local artwork import, relative references, preview reload after
+  reopening a saved folder, and portable archive inclusion.
+- Folder save/open, quiet autosave, portable import/export, undo/redo, search,
+  contextual previews, and semantic controls.
 - Runtime detection, BLANK adapter generation, explicit Play confirmation,
   reversible deployment backup, launch, and rollback commands.
+- Safe portable import that rejects non-empty destinations without changing them.
+- Character search, collection Delete shortcuts, honest editor-only labels for
+  unsupported basic runtime types, and user-facing game-support wording.
 
-Verification completed:
+Validation evidence:
 
-- npm run typecheck: passed.
-- npm run build: passed.
-- npm run test: passed, 2 tests.
-- cargo check --manifest-path src-tauri/Cargo.toml: passed.
-- npm run tauri build: passed. MSI and NSIS installers were produced under src-tauri/target/release/bundle/.
+- Browser editor journey passed for project/card naming, cost 1, base damage
+  11, upgrade damage 15, save, search, duplicate, rename, Delete, Ctrl+S,
+  Ctrl+Z, Ctrl+Y, unsupported-state labeling, and detection messaging.
+- Narrow 800x600 browser layout retained semantic controls.
+- npm run typecheck passed.
+- npm run test passed, 3 tests.
+- npm run build passed.
+- cargo check --manifest-path src-tauri/Cargo.toml passed.
+- cargo test --manifest-path src-tauri/Cargo.toml --lib passed, 2 tests.
+- npm run tauri build passed. Fresh MSI and NSIS bundles were produced.
+- The native executable launched and responded from the release output.
+- NSIS install, launch, and uninstall passed in an isolated directory. An
+  external user-project marker survived uninstall.
+- MSI validation is blocked on this host because four bounded silent msiexec
+  attempts hung before producing a log or installed files, including retries
+  with the Windows Installer service running. NSIS install, launch, and
+  uninstall passed in an isolated directory, and an external user-project
+  marker survived uninstall.
+- Play is blocked before launch because the compatible local BaseLib runtime is
+  undetected. The application reports Play setup required. No dependency was
+  installed.
 
 Current limits:
 
-- The desktop GUI has not yet undergone a full manual accessibility or
-  usability pass.
-- Play has not been launched from the new application. The existing Phase 0
-  runtime evidence remains the runtime authority.
-- Runtime mapping is currently limited to the proven BLANK character/card
-  contract. Other editor collections are canonical data but are not yet
-  emitted as independently proven runtime models.
+- The full native dialog-driven golden journey is not yet proven in this
+  environment, including native folder/file selection, portable export/import,
+  close/reopen, and visible artwork confirmation.
+- Full manual accessibility modes remain outstanding for forced colors, reduced
+  motion, dark mode, and 200% scaling.
+- MSI installation needs retesting on a supported Windows Installer context.
+- Play and rollback need one controlled application-driven run after the
+  compatible runtime is deliberately installed. The Phase 0 runtime proofs
+  remain the runtime authority.
 - Standalone source/mod export, migrations, recent-project metadata, broad
   import adapters, cross-platform packaging, and full artwork packaging for
   every runtime path remain incomplete.

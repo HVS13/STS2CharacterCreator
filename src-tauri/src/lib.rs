@@ -243,7 +243,14 @@ fn import_project(archive_file: String, destination_root: String) -> Result<(), 
     let input = fs::File::open(archive_file).map_err(|error| error.to_string())?;
     let mut archive = ZipArchive::new(input).map_err(|error| error.to_string())?;
     let destination = PathBuf::from(destination_root);
-    fs::create_dir_all(&destination).map_err(|error| error.to_string())?;
+    if destination.exists() {
+        let mut entries = fs::read_dir(&destination).map_err(|error| error.to_string())?;
+        if entries.next().is_some() {
+            return Err("Choose an empty folder for import. Existing files were not changed.".to_string());
+        }
+    } else {
+        fs::create_dir_all(&destination).map_err(|error| error.to_string())?;
+    }
     for index in 0..archive.len() {
         let mut entry = archive.by_index(index).map_err(|error| error.to_string())?;
         let relative = safe_relative_path(Path::new(entry.name()))?;
@@ -375,4 +382,64 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running STS2 Character Creator");
+}
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn test_root(label: &str) -> PathBuf {
+        let suffix = SystemTime::now()
+            .duration_since(UNIX_EPOCH)
+            .expect("system clock is valid")
+            .as_nanos();
+        std::env::temp_dir().join(format!("sts2cc-{label}-{suffix}"))
+    }
+
+    #[test]
+    fn portable_import_rejects_non_empty_destination() {
+        let root = test_root("non-empty");
+        let source = root.join("source");
+        let destination = root.join("destination");
+        let archive = root.join("portable.sts2char");
+        fs::create_dir_all(&source).expect("create source");
+        fs::write(source.join("project.json"), b"{}").expect("write project");
+        export_project(path_to_string(&source), path_to_string(&archive)).expect("export project");
+        fs::create_dir_all(&destination).expect("create destination");
+        fs::write(destination.join("keep.txt"), b"keep").expect("write marker");
+
+        let error = import_project(path_to_string(&archive), path_to_string(&destination))
+            .expect_err("non-empty destinations must be rejected");
+        assert!(error.contains("empty folder"));
+        assert!(destination.join("keep.txt").is_file());
+
+        let _ = fs::remove_dir_all(root);
+    }
+
+    #[test]
+    fn portable_round_trip_preserves_unicode_and_spaces() {
+        let root = test_root("round-trip");
+        let source = root.join("Source ü project");
+        let artwork = source.join("assets").join("card art");
+        let destination = root.join("Nested folder").join("Imported ü project");
+        let archive = root.join("Export ü project.sts2char");
+        fs::create_dir_all(&artwork).expect("create artwork folder");
+        fs::write(source.join("project.json"), br#"{"name":"QA Character"}"#).expect("write project");
+        let image_bytes = [137, 80, 78, 71, 13, 10, 26, 10, 0, 1, 2, 3];
+        fs::write(artwork.join("runtime strike ü.png"), image_bytes).expect("write artwork");
+
+        export_project(path_to_string(&source), path_to_string(&archive)).expect("export project");
+        import_project(path_to_string(&archive), path_to_string(&destination)).expect("import project");
+
+        assert_eq!(
+            fs::read(destination.join("project.json")).expect("read imported project"),
+            fs::read(source.join("project.json")).expect("read source project")
+        );
+        assert_eq!(
+            fs::read(destination.join("assets").join("card art").join("runtime strike ü.png"))
+                .expect("read imported artwork"),
+            image_bytes
+        );
+
+        let _ = fs::remove_dir_all(root);
+    }
 }

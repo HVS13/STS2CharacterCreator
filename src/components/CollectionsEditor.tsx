@@ -42,7 +42,8 @@ export function BasicCollectionEditor({ title, kind, items, selectedId, onSelect
       </section>
       {selected ? (
         <section className="detail-panel">
-          <div className="editor-title-row"><div><p className="eyebrow">{title.slice(0, -1)} definition</p><h2>{selected.name || 'Unnamed item'}</h2></div><button className="text-button danger-text" type="button" onClick={() => onDelete(selectedIndex)}>Delete</button></div>
+          <div className="editor-title-row"><div><p className="eyebrow">{title.slice(0, -1)} definition</p><h2>{selected.name || 'Unnamed item'}</h2></div><div className="button-row"><Badge tone="warning">Editor preview only</Badge><button className="text-button danger-text" type="button" onClick={() => onDelete(selectedIndex)}>Delete</button></div></div>
+          <p className="inline-warning">Editable, but not yet playable or exportable by the current runtime adapter.</p>
           <TextField label="Name" value={selected.name} onChange={(event) => onChange(selectedIndex, { name: event.target.value })} />
           <TextAreaField label="Description" rows={4} value={selected.description} onChange={(event) => onChange(selectedIndex, { description: event.target.value })} />
           {extraField === 'rarity' && <SelectField label={extraLabel} options={potionRarityOptions} value={selected.rarity ?? 'common'} onChange={(event) => onChange(selectedIndex, { rarity: event.target.value })} />}

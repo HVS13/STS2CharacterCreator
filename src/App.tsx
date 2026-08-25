@@ -90,6 +90,30 @@ function App() {
     window.setTimeout(() => setNotice((current) => current === message ? null : current), 4500);
   };
 
+  // Reload saved project artwork previews after opening a folder.
+  useEffect(() => {
+    if (!isTauri() || !projectPath || project.presentation.artwork.length === 0) {
+      if (project.presentation.artwork.length === 0) setArtworkPreviews({});
+      return;
+    }
+    let cancelled = false;
+    const load = async () => {
+      const entries = await Promise.all(project.presentation.artwork.map(async (asset) => {
+        try {
+          const absolutePath = projectPath.replace(/[\\/]+$/, '') + '/' + asset.relativePath;
+          const preview = await assetDataUrl(absolutePath, asset.mimeType);
+          return preview ? [asset.id, preview] as const : null;
+        } catch {
+          return null;
+        }
+      }));
+      if (!cancelled) {
+        setArtworkPreviews(Object.fromEntries(entries.filter((entry): entry is readonly [string, string] => Boolean(entry))));
+      }
+    };
+    void load();
+    return () => { cancelled = true; };
+  }, [projectPath, project.presentation.artwork]);
   const select = (section: SectionId, id?: string | null) => {
     selectSection(section, id ?? null);
   };
@@ -408,7 +432,22 @@ function App() {
       if ((event.ctrlKey || event.metaKey) && ['k', 'f'].includes(event.key.toLocaleLowerCase())) { event.preventDefault(); setSearchOpen(true); }
       if ((event.ctrlKey || event.metaKey) && event.key.toLocaleLowerCase() === 'n') { event.preventDefault(); newLocalProject(); }
       if (event.key === 'Escape') { setSearchOpen(false); setPlayOpen(false); }
-      if (event.key === 'Delete' && !editingText && selectedSection === 'cards' && selectedCard) deleteCard(selectedCard.id);
+      if (event.key === 'Delete' && !editingText) {
+        event.preventDefault();
+        if (selectedSection === 'cards' && selectedCard) {
+          deleteCard(selectedCard.id);
+        } else if (selectedSection === 'relics' && selectedId) {
+          const index = project.relics.findIndex((item) => item.id === selectedId);
+          if (index >= 0) deleteRelic(index);
+        } else if (selectedSection === 'statuses' && selectedId) {
+          const index = project.mechanics.statuses.findIndex((item) => item.id === selectedId);
+          if (index >= 0) deleteStatus(index);
+        } else if (basicSections.includes(selectedSection as BasicCollectionKey) && selectedId) {
+          const section = selectedSection as BasicCollectionKey;
+          const index = basicItems(project, section).findIndex((item) => item.id === selectedId);
+          if (index >= 0) deleteBasic(section, index);
+        }
+      }
     };
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
@@ -423,6 +462,7 @@ function App() {
   }, [dirty, projectPath, project, markSaved]);
   const searchItems = useMemo(() => {
     const items: Array<{ id: string; name: string; section: SectionId; detail: string }> = [];
+    items.push({ id: project.id, name: project.character.name, section: 'character', detail: 'Character' });
     project.cards.forEach((item) => items.push({ id: item.id, name: item.name, section: 'cards', detail: 'Card' }));
     project.relics.forEach((item) => items.push({ id: item.id, name: item.name, section: 'relics', detail: 'Relic' }));
     project.mechanics.statuses.forEach((item) => items.push({ id: item.id, name: item.name, section: 'statuses', detail: 'Status' }));
