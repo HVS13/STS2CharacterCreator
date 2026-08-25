@@ -18,11 +18,11 @@ No login should be required. Core authoring should work offline.
 
 ## Current phase
 
-We are **not building the desktop editor yet**.
+We are building the v1 desktop editor.
 
-The first phase proves the hardest technical assumption:
+Phase 0 proved the hardest technical assumption. Phase 1 now implements the editor:
 
-> Can a generic, data-driven runtime load a custom STS2 character from local structured data and local artwork, with a fast enough iteration loop for an intuitive creator?
+> Can a user create, validate, preview, save, share, and play a custom STS2 character without understanding the runtime plumbing?
 
 Read:
 
@@ -31,7 +31,7 @@ Read:
 - `docs/product/PRODUCT.md`
 - `docs/product/MVP.md`
 - `docs/product/UX_PRINCIPLES.md`
-- `docs/plans/active/000-phase-0-runtime-proof.md`
+- `docs/plans/active/001-build-v1.md`
 - `docs/STATUS.md`
 
 ## Repository rule

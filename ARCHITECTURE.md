@@ -1,8 +1,11 @@
 # Architecture
 
-Status: **Pre-implementation hypothesis**
+Status: **Accepted for v1 implementation**
 
-This document describes the intended architecture direction. Phase 0 exists to prove or reject the most important assumptions before we commit to the application architecture.
+The accepted architecture is recorded in
+docs/decisions/ADR-0001-runtime-and-local-first-architecture.md. The
+canonical project model belongs to this application. BLANK and BaseLib remain
+runtime adapter dependencies rather than project-format owners.
 
 ## Product architecture
 
@@ -118,7 +121,7 @@ It should include project data and local artwork.
 
 ## Desktop application
 
-Likely future stack, subject to post-Phase-0 confirmation:
+The v1 desktop stack is:
 
 - Tauri
 - React
@@ -126,7 +129,10 @@ Likely future stack, subject to post-Phase-0 confirmation:
 - Zod
 - Zustand or similarly small state layer
 
-Do not initialize this stack during Phase 0.
+Tauri owns the desktop shell and native file/process integration.
+React and TypeScript own the editor UI.
+Vite owns the frontend build.
+Zod validates canonical project data and adapter inputs.
 
 ## Runtime
 

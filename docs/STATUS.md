@@ -4,7 +4,9 @@ Last updated: 2026-08-25
 
 ## Current state
 
-Planning and research only.
+Phase 0 is complete. Phase 1, v1 application implementation, is in progress.
+The accepted runtime and local-first architecture is recorded in
+docs/decisions/ADR-0001-runtime-and-local-first-architecture.md.
 
 Phase 0, Stage 0A, environment audit, is complete. The factual report is in
 docs/research/ENVIRONMENT.md.
@@ -76,15 +78,15 @@ No production application code has been started. No application framework has be
 - import and export as first-class capabilities
 - eventual standalone mod or source export
 
-## Current architecture hypothesis
+## Accepted architecture
 
-Use a canonical project model with:
-
-1. a fast data-driven runtime path for normal editing and testing
-2. an optional generated standalone mod path for advanced export
-
-This is not yet accepted architecture. Phase 0 exists to prove or reject it.
-
+Phase 0 accepted a local-first Tauri desktop application with an application-owned
+canonical project model. The initial Play backend is a BLANK-derived runtime
+behind an adapter, with BaseLib as a runtime dependency. Project-relative local
+artwork and portable project files are first-class requirements. Runtime slots,
+BLANK JSON, and fixed vocabulary limits stay inside the adapter. Standalone
+source/mod export is deferred. The full decision is in
+`docs/decisions/ADR-0001-runtime-and-local-first-architecture.md`.
 ## Stage 0B findings
 
 The BLANK source audit at commit
@@ -152,9 +154,9 @@ was audited without modifying game content. The installed .NET SDK is now
 
 ## Immediate work
 
-Stage 0D.1.2, Stage 0D.2A, Stage 0D.2B, Stage 0E, Stage 0E.1, and Stage 0F
-are complete. Stage 0F established the minimum runtime breadth proof. Do not
-start Stage 0G from this task.
+Phase 0 is closed. The capacity experiment was intentionally not performed.
+Build v1 using docs/plans/active/001-build-v1.md. Do not start a separate
+Phase 0 experiment unless an implementation blocker requires it.
 
 ## Known decisions
 

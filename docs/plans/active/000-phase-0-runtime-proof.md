@@ -1,6 +1,6 @@
 # Phase 0: Runtime Feasibility Proof
 
-Status: **Not started**
+Status: **Complete**
 
 ## Purpose
 
