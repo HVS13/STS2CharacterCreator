@@ -48,7 +48,7 @@ Phase 0, Stage 0D.2A, minimal local data-defined character discovery proof, is c
 
 Phase 0, Stage 0D.2B, controlled runtime combat proof, passed on 2026-08-25 under explicit authorization for a normal Steam launch and temporary user-data writes. BaseLib 3.4.5 and patched BLANK loaded `Runtime Test` and `Runtime Strike`. In the first combat, Nibbit changed from 44 HP to 33 HP with no Block, proving 11 damage from the data-defined `damage: 11` effect. The post-play log had no BLANK/runtime error or exception. The full rollback passed: all 294 user-data hashes, all 3 pre-existing local-mod hashes, and all 53 Workshop directory IDs matched the baseline. Evidence is in docs/research/BLANK_COMBAT_PROOF.md.
 
-Phase 0, Stage 0E, minimal project-local artwork proof, passed on 2026-08-25. A three-file BLANK compatibility patch added one optional `art_path` field for forged cards and loaded one absolute local PNG through Godot `ImageTexture` resource takeover. Runtime Strike visibly displayed the test artwork in combat with no network access. The build produced a DLL and PCK with 0 errors. The full rollback restored all 294 user-data hashes, settings stability, the pre-existing local mod, and the 53-directory Workshop inventory. Evidence is in docs/research/BLANK_LOCAL_ART.md.
+Phase 0, Stage 0E and Stage 0E.1, minimal project-local artwork proofs, passed on 2026-08-25. Stage 0E proved one absolute local PNG can be loaded through Godot `ImageTexture` resource takeover. Stage 0E.1 proved that `assets/runtime-strike.png` remains usable after moving the project and removing the original location. Runtime Strike visibly displayed the custom artwork with no network access. The two-file relative-path compatibility patch built a DLL and PCK with 0 errors. The full rollback restored all 294 user-data hashes, settings stability, the pre-existing local mod, and the 53-directory Workshop inventory. Evidence is in docs/research/BLANK_LOCAL_ART.md.
 
 No production application code has been started. No application framework has been initialized.
 
@@ -140,7 +140,7 @@ was audited without modifying game content. The installed .NET SDK is now
 
 ## Immediate work
 
-Stage 0D.1.2, Stage 0D.2A, Stage 0D.2B, and Stage 0E are complete. Stage 0E proved one local project PNG can be displayed by a data-defined card and completed the verified rollback. Do not start Stage 0F from this task.
+Stage 0D.1.2, Stage 0D.2A, Stage 0D.2B, Stage 0E, and Stage 0E.1 are complete. Stage 0E.1 proved one relative project-local PNG remains displayable by a data-defined card after the project is moved, and completed the verified rollback. Do not start Stage 0F from this task.
 
 ## Known decisions
 
