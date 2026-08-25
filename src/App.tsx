@@ -182,10 +182,15 @@ function App() {
       const fileName = fileNameFromPath(source);
       const copied = await copyAsset(source, root, kind, fileName);
       const mimeType = assetMime(source);
-      const assetId = createId('art');
+      const previousAssetId = kind === 'card' && targetId
+        ? project.cards.find((entry) => entry.id === targetId)?.artworkAssetId
+        : kind === 'character' ? project.character.artworkAssetId : undefined;
+      const assetId = previousAssetId ?? createId('art');
       const asset: ArtworkAsset = { id: assetId, name: fileName.replace(/\.[^.]+$/, ''), relativePath: copied.relative_path, kind, mimeType };
       updateProject((item) => {
-        item.presentation.artwork.push(asset);
+        const existing = item.presentation.artwork.find((entry) => entry.id === assetId);
+        if (existing) Object.assign(existing, asset);
+        else item.presentation.artwork.push(asset);
         if (kind === 'card' && targetId) {
           const card = item.cards.find((entry) => entry.id === targetId);
           if (card) card.artworkAssetId = assetId;
@@ -195,7 +200,7 @@ function App() {
       setProjectPath(root);
       const preview = await assetDataUrl(copied.absolute_path, mimeType);
       if (preview) setArtworkPreviews((current) => ({ ...current, [assetId]: preview }));
-      announce('Artwork copied into the project assets folder.');
+      announce(previousAssetId ? 'Artwork replaced in the project assets folder.' : 'Artwork copied into the project assets folder.');
     } catch (error) {
       announce('Artwork import failed: ' + (error instanceof Error ? error.message : String(error)));
     } finally {
