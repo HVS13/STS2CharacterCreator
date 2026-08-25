@@ -4,10 +4,9 @@ Audit date: 2026-08-24
 
 Test window: approximately 18:19-18:21 Asia/Jakarta, based on the STS2 log timestamps and final log write time.
 
-Status: **Stage 0D.1.2 complete. The earlier non-isolated Stage 0D.1 result remains historical and blocked. Stage 0D.2 was not started.**
+Status: **Stage 0D.1.2 complete. Stage 0D.2A complete. Stage 0D.2B was not started.**
 
-This report covers only the reproducible compatibility checkpoint and controlled
-runtime smoke test. Stage 0D.2 was not started.
+This report covers the reproducible compatibility checkpoint and controlled runtime smoke test. The initial sections describe Stage 0D.1.2. The Stage 0D.2A character-discovery proof is appended below. Stage 0D.2B was not started.
 
 ## Outcome
 
@@ -387,4 +386,66 @@ The guarded PowerShell steps also recorded the pre-run hashes, verified target d
 | Workshop directory inventory | Pass, 53 of 53 unchanged |
 | Remote Steam Cloud/subscription state | Not independently verifiable locally |
 
-Stage 0D.1.2 is complete. Do not start Stage 0D.2 as part of this task.
+The Stage 0D.1.2 checkpoint is complete. The historical recommendation at that checkpoint was to defer Stage 0D.2 until its safety risks had an explicit disposition. Stage 0D.2A is now complete; Stage 0D.2B was not started.
+
+## Stage 0D.2A minimal local character discovery proof
+
+Audit date: **2026-08-24**
+
+This was a separate no-run proof. No run, embark, combat, custom artwork,
+relic, orb, summon, status, or website/API was used.
+
+### Artifact
+
+The source-derived minimum class used slot 01:
+
+- class name: `Runtime Test`;
+- character ID: none, because `CharacterSpec` uses the fixed compiled class slot;
+- class file: `user://forged/characters/01.json`;
+- card file: `user://forged/characters/01/cards/01.json`;
+- starter: slot 1, count 1;
+- card ID: `runtime_test_strike`;
+- class-file SHA-256: `9915DA5CEFC31D177DA3589F576F4F1D1055B8AB04DB0E37D0A19AD63343B753`;
+- card-file SHA-256: `3A33295BAB96BA6321C31996F3F25A578BD75C887BE18E69DDB7BCFB19789C18`.
+
+The helper preflight passed. The definitive BLANK startup parser and validator
+also passed, as shown by the class and card load lines below.
+
+### Isolated startup
+
+The existing game serializer created the isolation preview. It disabled 53
+unrelated entries, selected the local BaseLib source, and added local BLANK.
+Only the staged, hash-verified BaseLib v3.4.5 and patched BLANK directories were
+enabled at launch. Workshop content was retained and not changed.
+
+The captured log `research/build-output/0d2a/runtime/godot.log` reports:
+
+- lines 236-237: class 01 loaded as `Runtime Test`, then 1 forged class loaded;
+- lines 239: `RUNNING MODDED`, 2 enabled mods, 56 total entries;
+- lines 229-230: BaseLib applied 280 patches successfully, 0 failed;
+- lines 280-281: no standalone forged cards, then class card 01 loaded as
+  `Runtime Test Strike`;
+- lines 386-387: main menu reached in 15,924 ms.
+
+No `WaitHelper`, `MissingMethodException`, or `DuplicateModelException` failure
+was present. The source-generated `ForgedCharacterSlot01` reports
+`HideFromVanillaCharacterSelect => Spec.IsEmpty`, so the filled spec is eligible
+for character-select registration. Direct visual confirmation of the label was
+not safely available through the local tools and is not claimed.
+
+### Rollback and safety
+
+The complete pre-test `user://forged/` tree was backed up under the ignored
+`research/build-output/0d2a/rollback/forged/` directory. It contained only the
+pre-existing empty `forged/cards` directory. After normal shutdown, the exact
+settings hashes were restored, the test files and all 12 BLANK emoji cache files
+were removed, the two temporary local mod directories were removed, the original
+local mod inventory matched, and all 53 Workshop directory IDs matched.
+
+No run-save file was found. The game did automatically write existing modded
+profile/progress/preferences files and reported a Steam Cloud overwrite. Those
+writes are a known limitation of this local isolation method. The audit did not
+back up or modify gameplay saves, so remote cloud state and a byte-level
+pre/post comparison of those adjacent files remain unproven.
+
+Stage 0D.2B was not started.

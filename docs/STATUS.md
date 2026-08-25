@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-08-24
+Last updated: 2026-08-25
 
 ## Current state
 
@@ -38,12 +38,13 @@ final local-mod inventory matched the baseline.
 The original non-isolated Stage 0D.1 attempt remains blocked as a historical result. The log also records automatic
 settings.save synchronization and writes, so the strict no-save-change
 criterion is not proven. The full evidence is in
-docs/research/BLANK_RUNTIME_SMOKE.md. Stage 0D.2 was not started.
+docs/research/BLANK_RUNTIME_SMOKE.md. At that checkpoint, Stage 0D.2 was not started.
 
 Phase 0, Stage 0D.1.1, non-launching WaitHelper diagnosis and compatibility rebuild, is complete as a bounded follow-up. The compatibility worktree commit 7e5996fb2a16723684cb095951e97ba01e73fc69 selects the current string overload deterministically and rebuilds with 0 errors and 330 warnings. The local assembly audit found that `nomods` disables all mods, while source-aware `ModSettings` enablement is applied before mod loading. The clean Stage 0D.1.2 retry completed using the isolation procedure in docs/research/STS2_MOD_ISOLATION.md.
 
-Phase 0, Stage 0D.1.2, clean isolated BLANK runtime smoke-test retry, is complete as a bounded runtime proof. The game’s own settings serializer round-tripped a copy byte-for-byte, and a semantic diff proved that the temporary live edit changed only SettingsSave.ModSettings.ModList. A normal Steam launch loaded exactly local BaseLib v3.4.5 and patched BLANK, reached the main menu, and reported no WaitHelper or DuplicateModelException failure. STS2 did rotate the settings files and logged a cloud-save overwrite during startup, but both settings files, local mods, Workshop directory inventory, and BLANK-generated runtime artifacts were restored or verified after shutdown. Stage 0D.2 was not started.
+Phase 0, Stage 0D.1.2, clean isolated BLANK runtime smoke-test retry, is complete as a bounded runtime proof. The game’s own settings serializer round-tripped a copy byte-for-byte, and a semantic diff proved that the temporary live edit changed only SettingsSave.ModSettings.ModList. A normal Steam launch loaded exactly local BaseLib v3.4.5 and patched BLANK, reached the main menu, and reported no WaitHelper or DuplicateModelException failure. STS2 did rotate the settings files and logged a cloud-save overwrite during startup, but both settings files, local mods, Workshop directory inventory, and BLANK-generated runtime artifacts were restored or verified after shutdown. At that checkpoint, Stage 0D.2 was not started.
 
+Phase 0, Stage 0D.2A, minimal local data-defined character discovery proof, is complete. A source-derived `Runtime Test` class and one `runtime_test_strike` starter card were written to BLANK’s local class-slot paths, validated by the helper preflight, and accepted by BLANK’s definitive startup loaders. The isolated run loaded only local BaseLib v3.4.5 and patched BLANK, discovered the class and card, and reached the main menu without a run or combat. The forged tree, settings pair, temporary mods, BLANK cache files, and Workshop inventory were restored or verified. Direct character-select visuals were not captured. Automatic writes to existing modded profile/progress/preferences data and Steam Cloud remain a safety risk, as in Stage 0D.1.2. Evidence is in docs/research/BLANK_CHARACTER_PROOF.md.
 No production application code has been started. No application framework has been initialized.
 
 ## Confirmed product requirements
@@ -134,7 +135,7 @@ was audited without modifying game content. The installed .NET SDK is now
 
 ## Immediate work
 
-Stage 0D.1.2 is complete after the clean isolated retry. Do not start Stage 0D.2 in this task. The retry proved local BaseLib and patched BLANK reach the main menu with the known WaitHelper and duplicate-model failures absent. Exact local rollback passed, but remote Steam Cloud and subscription state remain outside direct local verification.
+Stage 0D.1.2 and Stage 0D.2A are complete. Do not start Stage 0D.2B until the character-select visual limitation and automatic save-write risk have an explicit disposition. The local discovery proof passed, exact forged/settings rollback passed, and remote Steam Cloud and subscription state remain outside direct local verification.
 
 ## Known decisions
 

@@ -505,3 +505,37 @@ attempted the unchanged build with the .NET 9 SDK available, while leaving Godot
 uninstalled and directing ModsPath to a sandbox. The attempt failed during C#
 compilation against the installed STS2 assembly. See docs/research/BLANK_BUILD.md
 for the exact errors and safety verification.
+
+## Stage 0D.2A persistence trace and discovery proof
+
+The local source trace and isolated runtime proof confirm the exact character data path:
+
+- `ForgeConfig.ImportClass` accepts a class code, calls `BTS1Codec.TryDecode`, and passes the decoded JSON to `ForgedCharacters.TryImportClassBundle`.
+- `TryImportClassBundle` parses the bundle with `Godot.Json`, validates the character through `TryValidateCharacterDict`, validates each card through `ForgedCards.TryParseCardJson`, then serializes the validated dictionaries with `Godot.Json.Stringify` and writes them with `ForgedCharacters.WriteClassFiles`.
+- `ForgedCharacters.ClassPath(1)` is `user://forged/characters/01.json`.
+- `ForgedCharacters.ClassCardPath(1, 1)` is `user://forged/characters/01/cards/01.json`.
+- Startup `ForgedCharacters.LoadClasses` calls `TryParseClassJson` and `TryValidateCharacterDict`. Startup `ForgedCharacters.LoadCards` calls `ForgedCards.TryParseCardJson` with basic cards allowed for class starters.
+- The generated `ForgedCharacterSlot01` shell reads the loaded spec, maps starting-deck slot references to `ForgedClass01CardNN`, and hides only when `CharacterSpec.IsEmpty` is true. A filled class is therefore eligible for the model database and vanilla character-select list.
+
+The complete `user://forged/` path inventory from source is:
+
+- `user://forged/characters/KK.json`, the class definition;
+- `user://forged/characters/KK/cards/NN.json`, the class-local card definitions;
+- `user://forged/characters/KK/splash.png`, optional imported select background;
+- `user://forged/characters/KK/sprite.png`, optional imported standing sprite;
+- `user://forged/characters/KK/relic.png`, optional imported relic icon; and
+- `user://forged/cards/NN.json`, the separate standalone forged-card pool.
+
+No metadata or cache file path under `user://forged/` appeared in the source; the BLANK emoji cache is outside that tree.
+
+`ForgedSplash.TryCacheFromBundle` is the writer for the three optional class-art
+files. It performs synchronous URL downloads and was not called by the local
+proof. BLANK also writes emoji cache files outside this tree as
+`user://bts_emoji_{key}.png` and `user://bts_emoji_{key}.res` during mod startup.
+
+The Stage 0D.2A test wrote a minimum `Runtime Test` class and one basic attack
+card into class slot 01. The startup log reported the class and card as loaded,
+then reached the main menu with local BaseLib v3.4.5 and BLANK enabled. No run or
+combat was entered. The direct character-select visual was not captured, so the
+source-backed `HideFromVanillaCharacterSelect` eligibility and loader evidence
+are recorded as the registration proof, not as a visual screenshot.
