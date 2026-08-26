@@ -186,7 +186,11 @@ export interface RuntimeStatus {
   mods_path: string | null;
   base_lib_found: boolean;
   blank_found: boolean;
+  ritsu_lib_found: boolean;
+  minion_lib_found: boolean;
+  kit_lib_found: boolean;
   game_version: string | null;
+  runtime_backup_path: string | null;
   message: string;
 }
 

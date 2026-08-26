@@ -289,3 +289,33 @@ When actual third-party source is adopted, add entries containing:
 - copied or adapted files
 - material modifications
 - required notices
+
+
+## Runtime library infrastructure audit
+
+The following current upstream checkouts were inspected for the reusable runtime-library milestone. No source was copied or vendored.
+
+### RitsuLib
+
+- Repository: https://github.com/BAKAOLC/STS2-RitsuLib
+- Current and v0.5.14 release commit: 8fca891d65de050b1848b9dc4e1fcc449dacf253
+- License: MIT
+- Current source declares STS2 API compatibility through 0.111.0 and a DLL-only runtime manifest. The focused 0.111.0 DLL build passed after skipping an upstream SDK inline manifest task. No source was patched.
+
+### MinionLib
+
+- Repository: https://github.com/FuYnAloft/MinionLib
+- Current source commit: 817eb721843354937021a312b55edf02544d000b
+- v0.6.2 release commit: bdd8bcec4691b9974f5b47542f3f073b1448fd2b
+- License: LGPL-3.0-only
+- The core current source build passed against the local STS2 assembly. It declares a DLL and PCK. No PCK was produced because Godot was not available, and no runtime load was claimed.
+
+### KitLib
+
+- Repository: https://github.com/WRXinYue/STS2-KitLib
+- Current source commit: ab43d0bf4fd9709f4b7bcb327b6778d2e7949d95
+- v0.33.0 release commit: 9aaaa15cae03273d82ad6667f562cab473df1976
+- License: MIT
+- KitLib core built against the local STS2 assembly. It remains development-only and is not a generated character runtime dependency.
+
+See docs/research/RUNTIME_LIBRARIES.md for the compatibility matrix and staging policy.

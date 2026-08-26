@@ -5,6 +5,7 @@ import { createId, makeCard, makeRelic } from './lib/model';
 import { ProjectSchema } from './lib/schema';
 import { validateProject } from './lib/validation';
 import { buildRuntimeBundle } from './lib/runtimeAdapter';
+import { projectRuntimeCapabilities, resolveRuntimeRequirements, runtimeAvailableLibraryIds } from './lib/runtimeLibraries';
 import {
   assetDataUrl,
   chooseDirectory,
@@ -376,9 +377,14 @@ function App() {
   };
 
   const runSetup = async () => {
+    const requirements = resolveRuntimeRequirements(projectRuntimeCapabilities(project), { mode: 'play', availableLibraryIds: runtimeAvailableLibraryIds(runtime) });
+    if (requirements.status !== 'ready') {
+      announce(requirements.message);
+      return;
+    }
     setWorking(true);
     try {
-      setRuntime(await setupRuntime());
+      setRuntime(await setupRuntime(requirements.requiredLibraryIds));
       announce('Runtime is ready.');
     } catch (error) {
       announce('Runtime setup failed: ' + (error instanceof Error ? error.message : String(error)));
@@ -399,17 +405,24 @@ function App() {
 
   const runPlay = async () => {
     if (!playAcknowledged) return;
-    if (!runtime?.game_found || !runtime.base_lib_found || !runtime.blank_found) {
-      announce('Set up Runtime before Play.');
+    if (!runtime?.game_found) {
+      announce('Detect STS2 before Play.');
+      return;
+    }
+    const requirements = resolveRuntimeRequirements(projectRuntimeCapabilities(project), { mode: 'play', availableLibraryIds: runtimeAvailableLibraryIds(runtime) });
+    if (requirements.status !== 'ready') {
+      announce(requirements.message);
       return;
     }
     setWorking(true);
     try {
       const root = projectPath ?? await saveCurrent();
       if (!root) return;
+      const preparedRuntime = runtime.runtime_backup_path ? runtime : await setupRuntime(requirements.requiredLibraryIds);
+      setRuntime(preparedRuntime);
       const bundle = buildRuntimeBundle(project);
       await prepareRuntime(root, bundle.files);
-      const deployment = await deployRuntime(project.id, bundle.files);
+      const deployment = await deployRuntime(project.id, bundle.files, preparedRuntime.runtime_backup_path);
       setBackupPath(deployment.backup_path);
       await launchGame();
       announce('Runtime launched. The deployment backup is ready for rollback.');

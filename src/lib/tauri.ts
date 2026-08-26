@@ -1,5 +1,6 @@
 import { invoke } from '@tauri-apps/api/core';
 import { open, save } from '@tauri-apps/plugin-dialog';
+import type { RuntimeLibraryId } from './runtimeLibraries';
 import type { RuntimeStatus } from '../types';
 
 export const isTauri = () => typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window;
@@ -68,14 +69,14 @@ export async function importProject(archiveFile: string, destinationRoot: string
 
 export async function detectRuntime(): Promise<RuntimeStatus> {
   if (!isTauri()) {
-    return { game_found: false, game_path: null, mods_path: null, base_lib_found: false, blank_found: false, game_version: null, message: 'Run the desktop app to detect your local STS2 installation.' };
+    return { game_found: false, game_path: null, mods_path: null, base_lib_found: false, blank_found: false, ritsu_lib_found: false, minion_lib_found: false, kit_lib_found: false, game_version: null, runtime_backup_path: null, message: 'Run the desktop app to detect your local STS2 installation.' };
   }
   return invoke<RuntimeStatus>('detect_runtime');
 }
 
-export async function setupRuntime(): Promise<RuntimeStatus> {
+export async function setupRuntime(requiredLibraryIds: RuntimeLibraryId[] = ['base-lib']): Promise<RuntimeStatus> {
   if (!isTauri()) throw new Error('Runtime setup is available in the desktop app.');
-  return invoke<RuntimeStatus>('setup_runtime');
+  return invoke<RuntimeStatus>('setup_runtime', { requiredLibraryIds });
 }
 
 export async function prepareRuntime(projectRoot: string, files: Record<string, string>): Promise<{ staging_path: string; files_written: number }> {
@@ -83,9 +84,9 @@ export async function prepareRuntime(projectRoot: string, files: Record<string, 
   return invoke('prepare_runtime', { projectRoot, files });
 }
 
-export async function deployRuntime(projectId: string, files: Record<string, string>): Promise<{ backup_path: string; user_data_path: string; files_written: number }> {
+export async function deployRuntime(projectId: string, files: Record<string, string>, runtimeBackupPath?: string | null): Promise<{ backup_path: string; user_data_path: string; files_written: number }> {
   if (!isTauri()) throw new Error('Runtime deployment is available in the desktop app.');
-  return invoke('deploy_runtime', { projectId, files });
+  return invoke('deploy_runtime', { projectId, files, runtimeBackupPath });
 }
 
 export async function launchGame(): Promise<void> {

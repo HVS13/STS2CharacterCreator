@@ -17,6 +17,19 @@ struct BundledRuntimeFile {
     name: &'static str,
     bytes: &'static [u8],
 }
+struct OptionalRuntimeLibrary {
+    id: &'static str,
+    manifest_id: &'static str,
+    folder: &'static str,
+    manifest: &'static str,
+    dll: &'static str,
+    pck: Option<&'static str>,
+}
+const OPTIONAL_RUNTIME_LIBRARIES: [OptionalRuntimeLibrary; 3] = [
+    OptionalRuntimeLibrary { id: "ritsu-lib", manifest_id: "STS2-RitsuLib", folder: "STS2-RitsuLib", manifest: "mod_manifest.json", dll: "STS2-RitsuLib.dll", pck: None },
+    OptionalRuntimeLibrary { id: "minion-lib", manifest_id: "MinionLib", folder: "MinionLib", manifest: "MinionLib.json", dll: "MinionLib.dll", pck: Some("MinionLib.pck") },
+    OptionalRuntimeLibrary { id: "kit-lib", manifest_id: "KitLib", folder: "KitLib", manifest: "mod_manifest.json", dll: "KitLib.dll", pck: None },
+];
 
 const BASE_LIB_FILES: [BundledRuntimeFile; 3] = [
     BundledRuntimeFile { name: "BaseLib.dll", bytes: include_bytes!("../resources/runtime/BaseLib/BaseLib.dll") },
@@ -36,7 +49,11 @@ struct RuntimeStatus {
     mods_path: Option<String>,
     base_lib_found: bool,
     blank_found: bool,
+    ritsu_lib_found: bool,
+    minion_lib_found: bool,
+    kit_lib_found: bool,
     game_version: Option<String>,
+    runtime_backup_path: Option<String>,
     message: String,
 }
 
@@ -147,6 +164,62 @@ fn find_game_path() -> Option<PathBuf> {
 fn runtime_component_verified(path: &Path, files: &[BundledRuntimeFile]) -> bool {
     files.iter().all(|file| fs::read(path.join(file.name)).map(|bytes| bytes == file.bytes).unwrap_or(false))
 }
+fn optional_runtime_component_verified(mods: &Path, library: &OptionalRuntimeLibrary) -> bool {
+    let root = mods.join(library.folder);
+    let manifest_text = match fs::read_to_string(root.join(library.manifest)) {
+        Ok(text) => text,
+        Err(_) => return false,
+    };
+    let manifest: serde_json::Value = match serde_json::from_str(&manifest_text) {
+        Ok(value) => value,
+        Err(_) => return false,
+    };
+    manifest.get("id").and_then(|value| value.as_str()) == Some(library.manifest_id)
+        && root.join(library.dll).is_file()
+        && library.pck.map(|name| root.join(name).is_file()).unwrap_or(true)
+}
+fn optional_runtime_library_found(mods: &Path, id: &str) -> bool {
+    OPTIONAL_RUNTIME_LIBRARIES.iter()
+        .find(|library| library.id == id)
+        .map(|library| optional_runtime_component_verified(mods, library))
+        .unwrap_or(false)
+}
+const RUNTIME_MOD_STATE_FILE: &str = "runtime-mod-state.json";
+fn snapshot_runtime_mods(mods: &Path, backup: &Path) -> Result<(), String> {
+    fs::create_dir_all(backup).map_err(|error| error.to_string())?;
+    let mut state = serde_json::Map::new();
+    for folder in ["BaseLib", "BlankTheSpire"] {
+        let source = mods.join(folder);
+        let present = source.is_dir();
+        state.insert(folder.to_string(), json!(present));
+        if present {
+            copy_directory(&source, &backup.join(folder))?;
+        }
+    }
+    let state_file = serde_json::to_vec_pretty(&serde_json::Value::Object(state)).map_err(|error| error.to_string())?;
+    fs::write(backup.join(RUNTIME_MOD_STATE_FILE), state_file).map_err(|error| error.to_string())
+}
+fn remove_path(path: &Path) -> Result<(), String> {
+    if path.is_dir() {
+        fs::remove_dir_all(path).map_err(|error| error.to_string())
+    } else if path.exists() {
+        fs::remove_file(path).map_err(|error| error.to_string())
+    } else {
+        Ok(())
+    }
+}
+fn restore_runtime_mods(mods: &Path, backup: &Path) -> Result<(), String> {
+    let state_text = fs::read_to_string(backup.join(RUNTIME_MOD_STATE_FILE)).map_err(|error| error.to_string())?;
+    let state: serde_json::Value = serde_json::from_str(&state_text).map_err(|error| error.to_string())?;
+    for folder in ["BaseLib", "BlankTheSpire"] {
+        let destination = mods.join(folder);
+        remove_path(&destination)?;
+        if state.get(folder).and_then(|value| value.as_bool()).unwrap_or(false) {
+            copy_directory(&backup.join(folder), &destination)?;
+        }
+    }
+    Ok(())
+}
 
 fn runtime_status(game: Option<&Path>) -> RuntimeStatus {
     let game_path = game.map(path_to_string);
@@ -154,6 +227,9 @@ fn runtime_status(game: Option<&Path>) -> RuntimeStatus {
     let mods_path = mods.as_ref().map(|path| path_to_string(path));
     let base_lib_found = mods.as_ref().map(|path| runtime_component_verified(&path.join("BaseLib"), &BASE_LIB_FILES)).unwrap_or(false);
     let blank_found = mods.as_ref().map(|path| runtime_component_verified(&path.join("BlankTheSpire"), &BLANK_FILES)).unwrap_or(false);
+    let ritsu_lib_found = mods.as_ref().map(|path| optional_runtime_library_found(path, "ritsu-lib")).unwrap_or(false);
+    let minion_lib_found = mods.as_ref().map(|path| optional_runtime_library_found(path, "minion-lib")).unwrap_or(false);
+    let kit_lib_found = mods.as_ref().map(|path| optional_runtime_library_found(path, "kit-lib")).unwrap_or(false);
     let game_version = game.and_then(read_build_id);
     let message = match game {
         Some(path) if game_version.as_deref() == Some(PROVEN_STS2_BUILD_ID) && base_lib_found && blank_found =>
@@ -161,7 +237,7 @@ fn runtime_status(game: Option<&Path>) -> RuntimeStatus {
         Some(path) => format!("Slay the Spire 2 found at {}.", path_to_string(path)),
         None => "Slay the Spire 2 was not found in the detected Steam libraries.".to_string(),
     };
-    RuntimeStatus { game_found: game.is_some(), game_path, mods_path, base_lib_found, blank_found, game_version, message }
+    RuntimeStatus { game_found: game.is_some(), game_path, mods_path, base_lib_found, blank_found, ritsu_lib_found, minion_lib_found, kit_lib_found, game_version, runtime_backup_path: None, message }
 }
 fn read_build_id(game_path: &Path) -> Option<String> {
     let manifest = game_path.parent()?.parent()?.join("appmanifest_2868840.acf");
@@ -189,7 +265,19 @@ fn install_runtime_component(path: &Path, files: &[BundledRuntimeFile]) -> Resul
 }
 
 #[tauri::command]
-fn setup_runtime(_app: AppHandle) -> Result<RuntimeStatus, String> {
+fn setup_runtime(_app: AppHandle, required_library_ids: Option<Vec<String>>) -> Result<RuntimeStatus, String> {
+    let required = required_library_ids.unwrap_or_else(|| vec!["base-lib".to_string()]);
+    if !required.iter().any(|id| id == "base-lib") {
+        return Err("BaseLib is required by the current runtime backend.".to_string());
+    }
+    for id in &required {
+        if id != "base-lib" && !OPTIONAL_RUNTIME_LIBRARIES.iter().any(|library| library.id == id) {
+            return Err(format!("Unknown runtime library: {id}."));
+        }
+    }
+    if required.iter().any(|id| id == "kit-lib") {
+        return Err("KitLib is developer-only and is not staged during normal Play.".to_string());
+    }
     let game = find_game_path().ok_or_else(|| "Slay the Spire 2 was not found in the detected Steam libraries.".to_string())?;
     let build_id = read_build_id(&game).ok_or_else(|| "The installed STS2 build could not be verified.".to_string())?;
     if build_id != PROVEN_STS2_BUILD_ID {
@@ -197,9 +285,21 @@ fn setup_runtime(_app: AppHandle) -> Result<RuntimeStatus, String> {
     }
     let mods = game.join("mods");
     fs::create_dir_all(&mods).map_err(|error| error.to_string())?;
+    let missing: Vec<String> = required.iter()
+        .filter(|id| *id != "base-lib")
+        .filter(|id| !optional_runtime_library_found(&mods, id))
+        .cloned()
+        .collect();
+    if !missing.is_empty() {
+        return Err(format!("Required runtime libraries are not installed: {}.", missing.join(", ")));
+    }
+    let user_root = user_data_root()?;
+    let backup_root = user_root.join(".sts2cc-backups").join("runtime-staging").join(backup_stamp());
+    snapshot_runtime_mods(&mods, &backup_root)?;
     install_runtime_component(&mods.join("BaseLib"), &BASE_LIB_FILES)?;
     install_runtime_component(&mods.join("BlankTheSpire"), &BLANK_FILES)?;
-    let status = runtime_status(Some(&game));
+    let mut status = runtime_status(Some(&game));
+    status.runtime_backup_path = Some(path_to_string(&backup_root));
     if !status.base_lib_found || !status.blank_found {
         return Err("Runtime setup finished without verifying all required files.".to_string());
     }
@@ -228,6 +328,10 @@ fn write_project_file(root_path: String, contents: String) -> Result<(), String>
 fn chrono_like_now() -> String {
     let seconds = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_secs();
     format!("unix:{seconds}")
+}
+fn backup_stamp() -> String {
+    let nanos = SystemTime::now().duration_since(UNIX_EPOCH).unwrap_or_default().as_nanos();
+    format!("unix-{nanos}")
 }
 
 #[tauri::command]
@@ -352,12 +456,25 @@ fn prepare_runtime(project_root: String, files: HashMap<String, String>) -> Resu
 }
 
 #[tauri::command]
-fn deploy_runtime(project_id: String, files: HashMap<String, String>) -> Result<DeploymentResult, String> {
+fn deploy_runtime(project_id: String, files: HashMap<String, String>, runtime_backup_path: Option<String>) -> Result<DeploymentResult, String> {
     let user_root = user_data_root()?;
     let forged = user_root.join("forged");
-    let backup_root = user_root.join(".sts2cc-backups").join(&project_id).join(chrono_like_now().replace(':', "-"));
+    let backup_root = user_root.join(".sts2cc-backups").join(&project_id).join(backup_stamp());
+    let mods_backup = backup_root.join("mods");
+    if let Some(staging_backup) = runtime_backup_path {
+        let source = PathBuf::from(staging_backup);
+        if !source.join(RUNTIME_MOD_STATE_FILE).is_file() {
+            return Err("The runtime staging backup is missing its state record.".to_string());
+        }
+        copy_directory(&source, &mods_backup)?;
+    } else {
+        let game = find_game_path().ok_or_else(|| "Slay the Spire 2 was not found while preparing the runtime backup.".to_string())?;
+        snapshot_runtime_mods(&game.join("mods"), &mods_backup)?;
+    }
     if forged.exists() {
-        copy_directory(&forged, &backup_root)?;
+        copy_directory(&forged, &backup_root.join("forged"))?;
+    } else {
+        fs::create_dir_all(backup_root.join("forged")).map_err(|error| error.to_string())?;
     }
     if forged.exists() {
         fs::remove_dir_all(&forged).map_err(|error| error.to_string())?;
@@ -379,10 +496,17 @@ fn rollback_runtime(backup_path: String) -> Result<(), String> {
     if forged.exists() {
         fs::remove_dir_all(&forged).map_err(|error| error.to_string())?;
     }
-    if backup.exists() {
+    if backup.join("forged").is_dir() {
+        copy_directory(&backup.join("forged"), &forged)?;
+    } else if backup.exists() {
         copy_directory(&backup, &forged)?;
     } else {
         fs::create_dir_all(&forged).map_err(|error| error.to_string())?;
+    }
+    let mods_backup = backup.join("mods");
+    if mods_backup.join(RUNTIME_MOD_STATE_FILE).is_file() {
+        let game = find_game_path().ok_or_else(|| "Slay the Spire 2 was not found while restoring runtime mods.".to_string())?;
+        restore_runtime_mods(&game.join("mods"), &mods_backup)?;
     }
     Ok(())
 }
@@ -489,6 +613,38 @@ mod tests {
             image_bytes
         );
 
+        let _ = fs::remove_dir_all(root);
+    }
+    #[test]
+    fn runtime_mod_snapshot_restores_only_staged_components() {
+        let root = test_root("runtime-mods");
+        let mods = root.join("mods");
+        let backup = root.join("backup");
+        fs::create_dir_all(mods.join("BaseLib")).expect("create BaseLib");
+        fs::create_dir_all(mods.join("UnifiedSavePath")).expect("create unrelated mod");
+        fs::write(mods.join("BaseLib").join("marker.txt"), b"original").expect("write BaseLib");
+        fs::write(mods.join("UnifiedSavePath").join("marker.txt"), b"unrelated").expect("write unrelated mod");
+        snapshot_runtime_mods(&mods, &backup).expect("snapshot runtime mods");
+        fs::write(mods.join("BaseLib").join("marker.txt"), b"changed").expect("change BaseLib");
+        fs::create_dir_all(mods.join("BlankTheSpire")).expect("create staged BLANK");
+        fs::write(mods.join("BlankTheSpire").join("marker.txt"), b"staged").expect("write staged BLANK");
+        fs::write(mods.join("UnifiedSavePath").join("marker.txt"), b"still unrelated").expect("change unrelated mod");
+        restore_runtime_mods(&mods, &backup).expect("restore runtime mods");
+        assert_eq!(fs::read(mods.join("BaseLib").join("marker.txt")).expect("read BaseLib"), b"original");
+        assert!(!mods.join("BlankTheSpire").exists());
+        assert_eq!(fs::read(mods.join("UnifiedSavePath").join("marker.txt")).expect("read unrelated mod"), b"still unrelated");
+        let _ = fs::remove_dir_all(root);
+    }
+    #[test]
+    fn optional_runtime_detection_requires_manifest_and_declared_files() {
+        let root = test_root("optional-detection");
+        let minion = root.join("MinionLib");
+        fs::create_dir_all(&minion).expect("create MinionLib");
+        fs::write(minion.join("MinionLib.json"), br#"{"id":"MinionLib"}"#).expect("write manifest");
+        fs::write(minion.join("MinionLib.dll"), b"dll").expect("write DLL");
+        assert!(!optional_runtime_library_found(&root, "minion-lib"));
+        fs::write(minion.join("MinionLib.pck"), b"pck").expect("write PCK");
+        assert!(optional_runtime_library_found(&root, "minion-lib"));
         let _ = fs::remove_dir_all(root);
     }
 }

@@ -2,6 +2,24 @@
 
 Last updated: 2026-08-26
 
+## Current checkpoint: reusable runtime-library infrastructure
+
+The internal library registry, capability vocabulary, deterministic dependency resolver, and safe runtime staging boundary are implemented. The canonical project format remains library-agnostic. No new character gameplay system was added.
+
+- Simple current projects resolve to the bundled BaseLib path and the existing patched BLANK backend.
+- RitsuLib, MinionLib, and KitLib are recorded with exact upstream pins and conservative compatibility states. Their optional STS2 runtime loads remain untested.
+- KitLib is developer-only and is excluded from normal Play.
+- Normal Play rejects missing, incompatible, or untested optional requirements. It does not silently download or overwrite optional libraries.
+- Runtime setup snapshots and restores only the local BaseLib and BlankTheSpire folders it stages. Unrelated local mods and Workshop content remain outside that rollback boundary.
+- Focused resolver tests, native rollback tests, TypeScript typecheck, and the upstream build checks passed. The full application test suite was not run.
+- Steam Cloud is user-managed and was not changed or evaluated by this task.
+
+See docs/research/RUNTIME_LIBRARIES.md for the compatibility matrix, upstream evidence, and known limitations.
+
+## Historical v1 validation record
+
+Last updated: 2026-08-26
+
 ## Current state
 
 Phase 0 is complete. Phase 1, v1 application implementation, is in progress.

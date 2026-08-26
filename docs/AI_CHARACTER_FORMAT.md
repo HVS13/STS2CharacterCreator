@@ -144,6 +144,10 @@ paths outside the project, missing files, and remote URLs are invalid.
 For the current runtime proof, a card artwork reference is emitted as a
 project-relative `art_path`. The current runtime does not require network access.
 
+AI authors describe canonical gameplay concepts only. They do not select
+BaseLib, RitsuLib, MinionLib, or KitLib in project data. The application resolves
+internal capability requirements when preparing a runtime.
+
 ## Runtime support and editor-only data
 
 The current BLANK adapter has proven support for character base stats, a
