@@ -1,6 +1,6 @@
 # Project Status
 
-Last updated: 2026-08-25
+Last updated: 2026-08-26
 
 ## Current state
 
@@ -65,6 +65,27 @@ and the 53-directory Workshop inventory. Evidence is in
 docs/research/BLANK_BREADTH_PROOF.md.
 
 The v1 desktop application scaffold and initial editor implementation are now present. The application framework is initialized. No STS2 save, game, or Workshop content was modified during this implementation slice.
+## External author tooling checkpoint
+
+The official AI and external-author workflow is now implemented. The canonical
+Zod `ProjectSchema` is strict and the generated machine-readable schema is in
+`schemas/sts2-character-project.schema.json`.
+
+The offline CLI uses the application’s canonical model and validation path:
+
+- `npm run character:validate -- <project-folder>`
+- `npm run character:pack -- <project-folder>`
+- `npm run character:verify -- <file.sts2char>`
+- `npm run character:build -- <project-folder>`
+
+`examples/ai-character` is a minimal valid external-author project with a
+project-owned PNG. The CLI validates IDs, references, local relative assets,
+schema shape, archive integrity, and current runtime warnings. The archive
+verification path extracts to a temporary directory and removes it afterward.
+
+Focused CLI tests were added. The minimal schema generation and example
+`character:build` smoke test passed. The full application test, typecheck, and
+production build were not rerun in this handoff.
 
 ## Confirmed product requirements
 

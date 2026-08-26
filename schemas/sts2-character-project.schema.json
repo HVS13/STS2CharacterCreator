@@ -1,0 +1,820 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "schemaVersion": {
+      "type": "number",
+      "const": 1
+    },
+    "id": {
+      "type": "string"
+    },
+    "name": {
+      "type": "string"
+    },
+    "description": {
+      "type": "string"
+    },
+    "createdAt": {
+      "type": "string"
+    },
+    "updatedAt": {
+      "type": "string"
+    },
+    "character": {
+      "type": "object",
+      "properties": {
+        "name": {
+          "type": "string"
+        },
+        "description": {
+          "type": "string"
+        },
+        "maxHp": {
+          "type": "number"
+        },
+        "maxEnergy": {
+          "type": "number"
+        },
+        "startingGold": {
+          "type": "number"
+        },
+        "cardPoolColor": {
+          "type": "string"
+        },
+        "startingDeck": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "cardId": {
+                "type": "string"
+              },
+              "count": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "cardId",
+              "count"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "startingRelics": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "artworkAssetId": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name",
+        "description",
+        "maxHp",
+        "maxEnergy",
+        "startingGold",
+        "cardPoolColor",
+        "startingDeck",
+        "startingRelics"
+      ],
+      "additionalProperties": false
+    },
+    "cards": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "attack",
+              "skill",
+              "power"
+            ]
+          },
+          "rarity": {
+            "type": "string",
+            "enum": [
+              "basic",
+              "common",
+              "uncommon",
+              "rare",
+              "token"
+            ]
+          },
+          "cost": {
+            "type": "number"
+          },
+          "target": {
+            "type": "string",
+            "enum": [
+              "self",
+              "enemy",
+              "allEnemies",
+              "none"
+            ]
+          },
+          "tags": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "effects": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "damage",
+                    "block",
+                    "draw",
+                    "gain_energy",
+                    "heal",
+                    "lose_hp",
+                    "apply_status",
+                    "apply_custom_status",
+                    "upgrade_card",
+                    "retain",
+                    "innate",
+                    "exhaust",
+                    "ethereal",
+                    "scry",
+                    "gain_orb_slot",
+                    "channel_orb",
+                    "summon"
+                  ]
+                },
+                "amount": {
+                  "type": "number"
+                },
+                "target": {
+                  "type": "string",
+                  "enum": [
+                    "self",
+                    "enemy",
+                    "allEnemies",
+                    "none"
+                  ]
+                },
+                "statusId": {
+                  "type": "string"
+                },
+                "condition": {
+                  "type": "object",
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "turn_at_least",
+                        "target_has_status",
+                        "has_block",
+                        "no_block",
+                        "hp_below_half",
+                        "hand_size_ge",
+                        "draw_pile_empty"
+                      ]
+                    },
+                    "value": {
+                      "type": "number"
+                    },
+                    "statusId": {
+                      "type": "string"
+                    },
+                    "negate": {
+                      "type": "boolean"
+                    }
+                  },
+                  "required": [
+                    "type"
+                  ],
+                  "additionalProperties": false
+                },
+                "cards": {
+                  "type": "string",
+                  "enum": [
+                    "all",
+                    "hand",
+                    "discard",
+                    "draw"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "type"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "upgrade": {
+            "type": "object",
+            "properties": {
+              "effects": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string"
+                    },
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "damage",
+                        "block",
+                        "draw",
+                        "gain_energy",
+                        "heal",
+                        "lose_hp",
+                        "apply_status",
+                        "apply_custom_status",
+                        "upgrade_card",
+                        "retain",
+                        "innate",
+                        "exhaust",
+                        "ethereal",
+                        "scry",
+                        "gain_orb_slot",
+                        "channel_orb",
+                        "summon"
+                      ]
+                    },
+                    "amount": {
+                      "type": "number"
+                    },
+                    "target": {
+                      "type": "string",
+                      "enum": [
+                        "self",
+                        "enemy",
+                        "allEnemies",
+                        "none"
+                      ]
+                    },
+                    "statusId": {
+                      "type": "string"
+                    },
+                    "condition": {
+                      "type": "object",
+                      "properties": {
+                        "type": {
+                          "type": "string",
+                          "enum": [
+                            "turn_at_least",
+                            "target_has_status",
+                            "has_block",
+                            "no_block",
+                            "hp_below_half",
+                            "hand_size_ge",
+                            "draw_pile_empty"
+                          ]
+                        },
+                        "value": {
+                          "type": "number"
+                        },
+                        "statusId": {
+                          "type": "string"
+                        },
+                        "negate": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "type"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "cards": {
+                      "type": "string",
+                      "enum": [
+                        "all",
+                        "hand",
+                        "discard",
+                        "draw"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "type"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "cost": {
+                "type": "number"
+              }
+            },
+            "required": [
+              "effects"
+            ],
+            "additionalProperties": false
+          },
+          "artworkAssetId": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "type",
+          "rarity",
+          "cost",
+          "target",
+          "tags",
+          "effects"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "relics": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "tier": {
+            "type": "string",
+            "enum": [
+              "starter",
+              "common",
+              "uncommon",
+              "rare",
+              "boss",
+              "shop"
+            ]
+          },
+          "hooks": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "trigger": {
+                  "type": "string",
+                  "enum": [
+                    "turn_start",
+                    "turn_end",
+                    "attacked",
+                    "on_card_played",
+                    "combat_end",
+                    "on_damage_dealt",
+                    "on_block_gained",
+                    "on_hp_lost"
+                  ]
+                },
+                "oncePerCombat": {
+                  "type": "boolean"
+                },
+                "effects": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string"
+                      },
+                      "type": {
+                        "type": "string",
+                        "enum": [
+                          "damage",
+                          "block",
+                          "draw",
+                          "gain_energy",
+                          "heal",
+                          "lose_hp",
+                          "apply_status",
+                          "apply_custom_status",
+                          "upgrade_card",
+                          "retain",
+                          "innate",
+                          "exhaust",
+                          "ethereal",
+                          "scry",
+                          "gain_orb_slot",
+                          "channel_orb",
+                          "summon"
+                        ]
+                      },
+                      "amount": {
+                        "type": "number"
+                      },
+                      "target": {
+                        "type": "string",
+                        "enum": [
+                          "self",
+                          "enemy",
+                          "allEnemies",
+                          "none"
+                        ]
+                      },
+                      "statusId": {
+                        "type": "string"
+                      },
+                      "condition": {
+                        "type": "object",
+                        "properties": {
+                          "type": {
+                            "type": "string",
+                            "enum": [
+                              "turn_at_least",
+                              "target_has_status",
+                              "has_block",
+                              "no_block",
+                              "hp_below_half",
+                              "hand_size_ge",
+                              "draw_pile_empty"
+                            ]
+                          },
+                          "value": {
+                            "type": "number"
+                          },
+                          "statusId": {
+                            "type": "string"
+                          },
+                          "negate": {
+                            "type": "boolean"
+                          }
+                        },
+                        "required": [
+                          "type"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "cards": {
+                        "type": "string",
+                        "enum": [
+                          "all",
+                          "hand",
+                          "discard",
+                          "draw"
+                        ]
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "type"
+                    ],
+                    "additionalProperties": false
+                  }
+                }
+              },
+              "required": [
+                "id",
+                "trigger",
+                "oncePerCombat",
+                "effects"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "tier",
+          "hooks"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "potions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "rarity": {
+            "type": "string",
+            "enum": [
+              "common",
+              "uncommon",
+              "rare"
+            ]
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "rarity"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "enchantments": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "name": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "effectText": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "description",
+          "effectText"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "mechanics": {
+      "type": "object",
+      "properties": {
+        "statuses": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              },
+              "emoji": {
+                "type": "string"
+              },
+              "isBuff": {
+                "type": "boolean"
+              },
+              "hook": {
+                "type": "string",
+                "enum": [
+                  "damage_dealt",
+                  "damage_taken",
+                  "block_gained",
+                  "energy_gain",
+                  "card_draw"
+                ]
+              },
+              "amount": {
+                "type": "number"
+              },
+              "decay": {
+                "type": "string",
+                "enum": [
+                  "none",
+                  "lose_one_eot",
+                  "lose_all_eot"
+                ]
+              },
+              "singleStack": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "description",
+              "emoji",
+              "isBuff",
+              "hook",
+              "amount",
+              "decay",
+              "singleStack"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "stances": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "description"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "orbs": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "description"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "companions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "description": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "description"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "statuses",
+        "stances",
+        "orbs",
+        "companions"
+      ],
+      "additionalProperties": false
+    },
+    "presentation": {
+      "type": "object",
+      "properties": {
+        "artwork": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "name": {
+                "type": "string"
+              },
+              "relativePath": {
+                "type": "string"
+              },
+              "kind": {
+                "type": "string",
+                "enum": [
+                  "card",
+                  "character",
+                  "relic",
+                  "status",
+                  "other"
+                ]
+              },
+              "mimeType": {
+                "type": "string",
+                "enum": [
+                  "image/png",
+                  "image/jpeg"
+                ]
+              }
+            },
+            "required": [
+              "id",
+              "name",
+              "relativePath",
+              "kind",
+              "mimeType"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "dialogue": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string"
+              },
+              "key": {
+                "type": "string"
+              },
+              "text": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "id",
+              "key",
+              "text"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "locales": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string"
+          },
+          "additionalProperties": {
+            "type": "object",
+            "propertyNames": {
+              "type": "string"
+            },
+            "additionalProperties": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "required": [
+        "artwork",
+        "dialogue",
+        "locales"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "schemaVersion",
+    "id",
+    "name",
+    "description",
+    "createdAt",
+    "updatedAt",
+    "character",
+    "cards",
+    "relics",
+    "potions",
+    "enchantments",
+    "mechanics",
+    "presentation"
+  ],
+  "additionalProperties": false,
+  "title": "STS2 Character Creator project",
+  "$id": "https://sts2-character-creator.local/schemas/sts2-character-project.schema.json"
+}

@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "id": "project-ai-example-001",
+  "name": "AI Example Character",
+  "description": "A minimal canonical project authored outside the editor.",
+  "createdAt": "2026-01-01T00:00:00.000Z",
+  "updatedAt": "2026-01-01T00:00:00.000Z",
+  "character": {
+    "name": "AI Example Character",
+    "description": "A format demonstration character.",
+    "maxHp": 70,
+    "maxEnergy": 3,
+    "startingGold": 99,
+    "cardPoolColor": "#3b82f6",
+    "startingDeck": [
+      {
+        "cardId": "card-ai-strike-001",
+        "count": 1
+      }
+    ],
+    "startingRelics": []
+  },
+  "cards": [
+    {
+      "id": "card-ai-strike-001",
+      "name": "AI Strike",
+      "description": "A simple example attack.",
+      "type": "attack",
+      "rarity": "common",
+      "cost": 1,
+      "target": "enemy",
+      "tags": [],
+      "effects": [
+        {
+          "id": "effect-ai-strike-001",
+          "type": "damage",
+          "amount": 6,
+          "target": "enemy"
+        }
+      ],
+      "artworkAssetId": "art-ai-strike-001"
+    }
+  ],
+  "relics": [],
+  "potions": [],
+  "enchantments": [],
+  "mechanics": {
+    "statuses": [],
+    "stances": [],
+    "orbs": [],
+    "companions": []
+  },
+  "presentation": {
+    "artwork": [
+      {
+        "id": "art-ai-strike-001",
+        "name": "AI Strike artwork",
+        "relativePath": "assets/card/ai-strike.png",
+        "kind": "card",
+        "mimeType": "image/png"
+      }
+    ],
+    "dialogue": [],
+    "locales": {
+      "en": {}
+    }
+  }
+}
